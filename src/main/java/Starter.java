@@ -23,6 +23,8 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.sdb.SDBFactory;
 import org.apache.jena.sdb.Store;
 import org.apache.jena.sdb.store.DatasetStore;
+import org.apache.jena.sparql.algebra.Algebra;
+import org.apache.jena.sparql.algebra.Op;
 
 /**
  * Example of the usual way to connect store and issue a query. A description of
@@ -33,9 +35,11 @@ import org.apache.jena.sdb.store.DatasetStore;
 public class Starter {
     static public void main(String... argv) throws IOException {
 
-        String queryString = loadQuery("./Query/LUBM/7.sparql");
+        String queryString = loadQuery("./Query/LUBM/2.sparql");
         Query query = QueryFactory.create(queryString);
         Store store = SDBFactory.connectStore("sdb-pgsql.ttl");
+        Op op = Algebra.compile(query);
+        System.out.println(op.toString());
         // dangerous!!! this line of code will wipe all data in DB
         // store.getTableFormatter().create();
 
@@ -52,8 +56,10 @@ public class Starter {
 
         Dataset ds = DatasetStore.create(store);
         try (QueryExecution qe = QueryExecutionFactory.create(query, ds)) {
+            System.out.println(qe.getClass().toString());
             ResultSet rs = qe.execSelect();
-            ResultSetFormatter.out(rs);
+            System.out.println(rs.getClass().getName());
+            // ResultSetFormatter.out(rs);
         }
 
         // Close the SDB connection which also closes the underlying JDBC connection.
