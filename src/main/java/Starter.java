@@ -33,7 +33,7 @@ import org.apache.jena.sdb.store.DatasetStore;
 public class Starter {
     static public void main(String... argv) throws IOException {
 
-        String queryString = loadQuery("./Query/5.sparql");
+        String queryString = loadQuery("./Query/LUBM/7.sparql");
         Query query = QueryFactory.create(queryString);
         Store store = SDBFactory.connectStore("sdb-pgsql.ttl");
         // dangerous!!! this line of code will wipe all data in DB
@@ -41,7 +41,9 @@ public class Starter {
 
         // load data from files
         // Model model = SDBFactory.connectDefaultModel(store);
-        // model = model.read("./Data/University1.nt", "N-TRIPLE");
+        // System.out.println("Starting loading data...");
+        // model = model.read("./Data/University2.nt", "N-TRIPLE");
+        // System.out.println("Finished loading data!");
 
         // Must be a DatasetStore to trigger the SDB query engine.
         // Creating a graph from the Store, and adding it to a general
@@ -72,8 +74,10 @@ public class Starter {
         String line;
         while ((line = bufferedReader.readLine()) != null) {
             queryString.append(line);
+            queryString.append("\n");
         }
         bufferedReader.close();
+        // System.out.println(queryString.toString());
         return queryString.toString();
     }
 
