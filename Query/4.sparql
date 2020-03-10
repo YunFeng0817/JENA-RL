@@ -1,0 +1,21 @@
+# Licensed under the terms of http://www.apache.org/licenses/LICENSE-2.0
+
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+SELECT *
+WHERE{
+    {
+        ?x foaf:home "Palo Alto" .        
+        {
+            ?x foaf:founder ?y.
+        }
+        union
+        {
+            ?x foaf:member ?y.
+        }
+        ?z foaf:developer ?y.
+        ?y foaf:revenue ?n.        
+        OPTIONAL {
+            ?y foaf:employees ?m.
+        }
+    }
+}

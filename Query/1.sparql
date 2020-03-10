@@ -1,0 +1,7 @@
+# Licensed under the terms of http://www.apache.org/licenses/LICENSE-2.0
+
+SELECT *
+WHERE {
+    ?s <http://www.w3.org/2000/01/rdf-schema#label> ?name .
+    ?a <http://example.org/elements/specificGravity> ?b
+}
