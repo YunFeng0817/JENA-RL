@@ -10,5 +10,7 @@ starter.java
         :595 private ResultSet execResultSet()
             :539 private void startQueryIterator()
                 :524 protected void execInit()
-                :581 queryIterator = getPlan().iterator();
+                :553 queryIterator = getPlan().iterator();
+                    :600 public Plan getPlan()
+                        
 
