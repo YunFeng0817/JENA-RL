@@ -177,7 +177,6 @@ public class QueryEngineSDB extends QueryEngineBase {
 
         @Override
         public Plan create(Query query, DatasetGraph dataset, Binding inputBinding, Context context) {
-
             QueryEngineSDB qe = new QueryEngineSDB((DatasetGraphSDB) dataset, query, inputBinding, context);
             return qe.getPlan();
         }
