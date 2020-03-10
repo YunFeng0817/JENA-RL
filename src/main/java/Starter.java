@@ -38,8 +38,8 @@ public class Starter {
         String queryString = loadQuery("./Query/LUBM/2.sparql");
         Query query = QueryFactory.create(queryString);
         Store store = SDBFactory.connectStore("sdb-pgsql.ttl");
-        Op op = Algebra.compile(query);
-        System.out.println(op.toString());
+        // Op op = Algebra.compile(query);
+        // System.out.println(op.toString());
         // dangerous!!! this line of code will wipe all data in DB
         // store.getTableFormatter().create();
 
@@ -56,9 +56,7 @@ public class Starter {
 
         Dataset ds = DatasetStore.create(store);
         try (QueryExecution qe = QueryExecutionFactory.create(query, ds)) {
-            System.out.println(qe.getClass().toString());
             ResultSet rs = qe.execSelect();
-            System.out.println(rs.getClass().getName());
             // ResultSetFormatter.out(rs);
         }
 
