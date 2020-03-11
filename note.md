@@ -21,7 +21,14 @@ starter.java
                                     :52 public static Op compile(Store store, Op op, Binding binding, Context context, SDBRequest request)
                             QueryEngineBase.java(src/main/java/org/apache/jena/sparql/engine/QueryEngineBase.java)
                             :110 public Plan getPlan()
-                                :118 protected Plan createPlan()                                    
+                                :118 protected Plan createPlan()   
+                                    :165 final public QueryIterator evaluate(Op op, DatasetGraph dsg, Binding binding, Context context)
+                                        QueryEngineSDB.java(src/main/java/org/apache/jena/sdb/engine/QueryEngineSDB.java)
+                                        :126 public QueryIterator eval(Op op, DatasetGraph dsg, Binding binding, Context context)
+                                            OpSQL.java (src/main/java/org/apache/jena/sdb/compiler/OpSQL.java)
+                                            :60 public QueryIterator exec(Binding parent, ExecutionContext execCxt)             
+                                                SDB_QC.java(src/main/java/org/apache/jena/sdb/compiler/SDB_QC.java)
+                                                :51 public static QueryIterator exec(OpSQL opSQL, SDBRequest request, Binding binding, ExecutionContext execCxt)
 ```
 
 SDB algebra expressions
