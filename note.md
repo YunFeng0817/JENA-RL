@@ -79,3 +79,55 @@ SDB algebra expressions
       Condition T_3.s = R_3.hash
 --------)
 ```
+SQL query
+```sql
+SELECT                                   -- V_1=?X V_2=?Y V_3=?Z
+                                         -- V_4=?X V_5=?Y V_6=?Z
+  R_1.lex AS V_1_lex, R_1.datatype AS V_1_datatype, R_1.lang AS V_1_lang, R_1.type AS V_1_type, 
+  R_2.lex AS V_2_lex, R_2.datatype AS V_2_datatype, R_2.lang AS V_2_lang, R_2.type AS V_2_type, 
+  R_3.lex AS V_3_lex, R_3.datatype AS V_3_datatype, R_3.lang AS V_3_lang, R_3.type AS V_3_type, 
+  R_1.lex AS V_4_lex, R_1.datatype AS V_4_datatype, R_1.lang AS V_4_lang, R_1.type AS V_4_type, 
+  R_2.lex AS V_5_lex, R_2.datatype AS V_5_datatype, R_2.lang AS V_5_lang, R_2.type AS V_5_type, 
+  R_3.lex AS V_6_lex, R_3.datatype AS V_6_datatype, R_3.lang AS V_6_lang, R_3.type AS V_6_type
+FROM
+    Triples AS T_1                       -- ?X rdf:type ub:GraduateStudent
+  INNER JOIN
+    Triples AS T_2                       -- ?Y rdf:type ub:University
+  ON ( T_1.p = -6430697865200335348      -- Const: rdf:type
+    AND T_1.o = 3868028305922703524      -- Const: ub:GraduateStudent
+    AND T_2.p = -6430697865200335348     -- Const: rdf:type
+    AND T_2.o = 3234288859141836178      -- Const: ub:University
+   )
+  INNER JOIN
+    Triples AS T_3                       -- ?Z rdf:type ub:Department
+  ON ( T_3.p = -6430697865200335348      -- Const: rdf:type
+    AND T_3.o = 292716264954457753       -- Const: ub:Department
+   )
+  INNER JOIN
+    Triples AS T_4                       -- ?X ub:memberOf ?Z
+  ON ( T_4.p = 2324457024993894247       -- Const: ub:memberOf
+    AND T_1.s = T_4.s                    -- Join var: ?X
+    AND T_3.s = T_4.o                    -- Join var: ?Z
+   )
+  INNER JOIN
+    Triples AS T_5                       -- ?Z ub:subOrganizationOf ?Y
+  ON ( T_5.p = -8635217119823486972      -- Const: ub:subOrganizationOf
+    AND T_2.s = T_5.o                    -- Join var: ?Y
+    AND T_3.s = T_5.s                    -- Join var: ?Z
+   )
+  INNER JOIN
+    Triples AS T_6                       -- ?X ub:undergraduateDegreeFrom ?Y
+  ON ( T_6.p = 1529584629654714385       -- Const: ub:undergraduateDegreeFrom
+    AND T_1.s = T_6.s                    -- Join var: ?X
+    AND T_2.s = T_6.o                    -- Join var: ?Y
+   )
+  LEFT OUTER JOIN
+    Nodes AS R_1                         -- Var: ?X
+  ON ( T_1.s = R_1.hash )
+  LEFT OUTER JOIN
+    Nodes AS R_2                         -- Var: ?Y
+  ON ( T_2.s = R_2.hash )
+  LEFT OUTER JOIN
+    Nodes AS R_3                         -- Var: ?Z
+  ON ( T_3.s = R_3.hash )
+```

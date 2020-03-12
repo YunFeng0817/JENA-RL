@@ -17,14 +17,13 @@
  */
 
 import java.io.*;
+import java.util.Iterator;
 
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.sdb.SDBFactory;
 import org.apache.jena.sdb.Store;
 import org.apache.jena.sdb.store.DatasetStore;
-import org.apache.jena.sparql.algebra.Algebra;
-import org.apache.jena.sparql.algebra.Op;
 
 /**
  * Example of the usual way to connect store and issue a query. A description of
@@ -32,7 +31,7 @@ import org.apache.jena.sparql.algebra.Op;
  * from environment variables SDB_USER and SDB_PASSWORD.
  */
 
-public class Starter {
+public class StarterSDB {
     static public void main(String... argv) throws IOException {
 
         String queryString = loadQuery("./Query/LUBM/2.sparql");
@@ -57,7 +56,15 @@ public class Starter {
         Dataset ds = DatasetStore.create(store);
         try (QueryExecution qe = QueryExecutionFactory.create(query, ds)) {
             ResultSet rs = qe.execSelect();
-            // ResultSetFormatter.out(rs);
+            for (; rs.hasNext();) {
+                QuerySolution soln = rs.nextSolution();
+                Iterator<String> vars = soln.varNames();
+                for (; vars.hasNext();) {
+                    String varName = vars.next();
+                    System.out.println(varName + ": " + soln.get(varName).toString());
+                }
+                System.out.println("------------");
+            }
         }
 
         // Close the SDB connection which also closes the underlying JDBC connection.
