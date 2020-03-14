@@ -43,10 +43,10 @@ public class StarterTDB {
         // store.getTableFormatter().create();
 
         // load data from files
-        System.out.println("Starting loading data...");
+        // System.out.println("Starting loading data...");
         // model = model.read("./Data/University1.nt", "N-TRIPLE");
         // model = model.read("./Data/University2.nt", "N-TRIPLE");
-        System.out.println("Finished loading data!");
+        // System.out.println("Finished loading data!");
 
         // Must be a DatasetStore to trigger the SDB query engine.
         // Creating a graph from the Store, and adding it to a general

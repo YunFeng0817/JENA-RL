@@ -5,7 +5,7 @@ e.printStackTrace();
 
 # execution stack
 ```java
-starter.java
+StarterSDB.java
     QueryExecutionBase.java(src/main/java/org/apache/jena/sparql/engine/QueryExecutionBase.java)
     :198 public ResultSet execSelect()
         :595 private ResultSet execResultSet()
@@ -30,6 +30,82 @@ starter.java
                                                 SDB_QC.java(src/main/java/org/apache/jena/sdb/compiler/SDB_QC.java)
                                                 :51 public static QueryIterator exec(OpSQL opSQL, SDBRequest request, Binding binding, ExecutionContext execCxt)
 ```
+
+```java
+StarterTDB.java
+    QueryExecutionBase.java(src/main/java/org/apache/jena/sparql/engine/QueryExecutionBase.java)
+    :198 public ResultSet execSelect()
+        :595 private ResultSet execResultSet()
+            :539 private void startQueryIterator()
+                :524 protected void execInit()
+                :553 queryIterator = getPlan().iterator();
+                    :600 public Plan getPlan()
+                        QueryEngineTDB.java(src/main/java/org/apache/jena/tdb/solver/QueryEngineTDB.java)
+                        :133 public Plan create(Query query, DatasetGraph dataset, Binding inputBinding, Context context)
+                            :62 protected QueryEngineTDB(Query query, DatasetGraphTDB dataset, Binding input, Context cxt)
+                            QueryEngineBase.java(src/main/java/org/apache/jena/sparql/engine/QueryEngineBase.java)
+                            :112 public Plan getPlan()
+                                :118 protected Plan createPlan()   
+                                    :165 final public QueryIterator evaluate(Op op, DatasetGraph dsg, Binding binding, Context context)
+                                        QueryEngineTDB.java(src/main/java/org/apache/jena/tdb/solver/QueryEngineTDB.java)
+                                        :97 public QueryIterator eval(Op op, DatasetGraph dsg, Binding binding, Context context)
+                                            QueryEngineMain.java(src/main/java/org/apache/jena/sparql/engine/main/QueryEngineMain.java)
+                                            56: public QueryIterator eval(Op op, DatasetGraph dsg, Binding input, Context context)
+                                                QC.java(src/main/java/org/apache/jena/sparql/engine/main/QC.java)
+                                                :45 public static QueryIterator execute(Op op, QueryIterator qIter, ExecutionContext execCxt)
+                                                    OpExecutor.java(src/main/java/org/apache/jena/sparql/engine/main/OpExecutor.java)
+                                                    :87 static QueryIterator execute(Op op, QueryIterator qIter, ExecutionContext execCxt)
+                                                        OpExecutorTDB1.java (src/main/java/org/apache/jena/tdb/solver/OpExecutorTDB1.java)
+                                                        :83 protected QueryIterator exec(Op op, QueryIterator input)
+                                                            OpExecutor.java(src/main/java/org/apache/jena/sparql/engine/main/OpExecutor.java)
+                                                            :113 protected QueryIterator exec(Op op, QueryIterator input)
+                                                                ExecutionDispatch.java(src/main/java/org/apache/jena/sparql/engine/main/ExecutionDispatch.java)
+                                                                :42 QueryIterator exec(Op op, QueryIterator input)
+                                                                    :236 public void visit(OpProject opProject)
+                                                                        OpExecutor.java(src/main/java/org/apache/jena/sparql/engine/main/OpExecutor.java)
+                                                                        381: protected QueryIterator execute(OpProject opProject, QueryIterator input)
+                                                                            :61 public void visit(OpQuadPattern quadPattern)
+                                                                                :160 protected QueryIterator execute(OpQuadPattern quadPattern, QueryIterator input)
+                                                                                    OpExecutorTDB1.java(src/main/java/org/apache/jena/tdb/solver/OpExecutorTDB1.java)
+                                                                                    :130 protected QueryIterator execute(OpQuadPattern quadPattern, QueryIterator input)
+                                                                                        :201 private static QueryIterator optimizeExecuteQuads(DatasetGraphTDB ds, QueryIterator input, Node gn, BasicPattern bgp, ExprList exprs, ExecutionContext execCxt)
+                                                                                            :173 private static QueryIterator optimizeExecuteTriples(DatasetGraphTDB dsgtdb, QueryIterator input,   BasicPattern pattern, ExprList exprs, ExecutionContext execCxt)
+                                                                                                :252 private static BasicPattern reorder(BasicPattern pattern, QueryIterPeek peek, ReorderTransformation transform)
+            
+
+
+```
+```java
+java.lang.Exception: this is a log
+        at org.apache.jena.sparql.engine.main.QC.execute(QC.java:47)
+        at org.apache.jena.tdb.solver.OpExecutorTDB1.plainExecute(OpExecutorTDB1.java:258)
+        at org.apache.jena.tdb.solver.OpExecutorTDB1.optimizeExecuteTriples(OpExecutorTDB1.java:203)
+        at org.apache.jena.tdb.solver.OpExecutorTDB1.optimizeExecuteQuads(OpExecutorTDB1.java:219)
+        at org.apache.jena.tdb.solver.OpExecutorTDB1.execute(OpExecutorTDB1.java:148)
+        at org.apache.jena.sparql.engine.main.ExecutionDispatch.visit(ExecutionDispatch.java:66)
+        at org.apache.jena.sparql.algebra.op.OpQuadPattern.visit(OpQuadPattern.java:92)
+        at org.apache.jena.sparql.engine.main.ExecutionDispatch.exec(ExecutionDispatch.java:46)
+        at org.apache.jena.sparql.engine.main.OpExecutor.exec(OpExecutor.java:118)
+        at org.apache.jena.tdb.solver.OpExecutorTDB1.exec(OpExecutorTDB1.java:87)
+        at org.apache.jena.sparql.engine.main.OpExecutor.execute(OpExecutor.java:390)
+        at org.apache.jena.sparql.engine.main.ExecutionDispatch.visit(ExecutionDispatch.java:267)
+        at org.apache.jena.sparql.algebra.op.OpProject.visit(OpProject.java:47)
+        at org.apache.jena.sparql.engine.main.ExecutionDispatch.exec(ExecutionDispatch.java:46)
+        at org.apache.jena.sparql.engine.main.OpExecutor.exec(OpExecutor.java:118)
+        at org.apache.jena.tdb.solver.OpExecutorTDB1.exec(OpExecutorTDB1.java:87)
+        at org.apache.jena.sparql.engine.main.OpExecutor.execute(OpExecutor.java:89)
+        at org.apache.jena.sparql.engine.main.QC.execute(QC.java:49)        
+(project (?X ?Y ?Z)
+  (quadpattern
+    (quad <urn:x-arq:DefaultGraphNode> ?X <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#GraduateStudent>)
+    (quad <urn:x-arq:DefaultGraphNode> ?Y <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#University>)
+    (quad <urn:x-arq:DefaultGraphNode> ?Z <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#Department>)
+    (quad <urn:x-arq:DefaultGraphNode> ?X <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#memberOf> ?Z)
+    (quad <urn:x-arq:DefaultGraphNode> ?Z <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#subOrganizationOf> ?Y)
+    (quad <urn:x-arq:DefaultGraphNode> ?X <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#undergraduateDegreeFrom> ?Y)
+  ))
+```
+
 
 SDB algebra expressions
 ```
