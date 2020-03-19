@@ -48,6 +48,7 @@ import org.apache.jena.tdb.store.GraphTDB;
 import org.apache.jena.tdb.store.NodeId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.jena.sparql.engine.optimizer.reorder.*;
 
 /**
  * TDB executor for algebra expressions. It is the standard ARQ executor except
@@ -183,9 +184,13 @@ public class OpExecutorTDB1 extends OpExecutor {
             if (transform != null) {
                 QueryIterPeek peek = QueryIterPeek.create(input, execCxt);
                 input = peek; // Must pass on
-                pattern = reorder(pattern, peek, transform);
+                // pattern = reorder(pattern, peek, transform);
+                // ReorderProc proc = new ReorderProcIndexes(new int[] { 2, 4, 0, 3, 1, 5 });
+                // Then reorder original patten
+                // pattern = proc.reorder(pattern);
             }
         }
+
         // -- Filter placement
 
         Op op = null;
@@ -194,7 +199,9 @@ public class OpExecutorTDB1 extends OpExecutor {
         else
             op = new OpBGP(pattern);
 
-        return plainExecute(op, input, execCxt);
+        QLearning ql = new QLearning(pattern, execCxt);
+        ql.calculateQ();
+        return input;
     }
 
     /** Execute, with optimization, a quad pattern */
@@ -233,7 +240,7 @@ public class OpExecutorTDB1 extends OpExecutor {
      * Execute without modification of the op - does <b>not</b> apply special graph
      * name translations
      */
-    private static QueryIterator plainExecute(Op op, QueryIterator input, ExecutionContext execCxt) {
+    static QueryIterator plainExecute(Op op, QueryIterator input, ExecutionContext execCxt) {
         // -- Execute
         // Switch to a non-reordering executor
         // The Op may be a sequence due to TransformFilterPlacement

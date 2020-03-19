@@ -16,40 +16,40 @@
  * limitations under the License.
  */
 
-package org.apache.jena.sparql.core ;
+package org.apache.jena.sparql.core;
 
-import java.util.ArrayList ;
-import java.util.Iterator ;
-import java.util.List ;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
-import org.apache.jena.atlas.io.IndentedLineBuffer ;
-import org.apache.jena.graph.Triple ;
-import org.apache.jena.sparql.serializer.SerializationContext ;
-import org.apache.jena.sparql.sse.SSE ;
-import org.apache.jena.sparql.sse.writers.WriterNode ;
-import org.apache.jena.sparql.util.Iso ;
-import org.apache.jena.sparql.util.NodeIsomorphismMap ;
+import org.apache.jena.atlas.io.IndentedLineBuffer;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.sparql.serializer.SerializationContext;
+import org.apache.jena.sparql.sse.SSE;
+import org.apache.jena.sparql.sse.writers.WriterNode;
+import org.apache.jena.sparql.util.Iso;
+import org.apache.jena.sparql.util.NodeIsomorphismMap;
 
 /**
- * A class whose purpose is to give a name to a collection of triples. Reduces the use of
- * bland "List" in APIs (Java 1.4)
+ * A class whose purpose is to give a name to a collection of triples. Reduces
+ * the use of bland "List" in APIs (Java 1.4)
  */
 
 public class BasicPattern implements Iterable<Triple> {
-    private List<Triple> triples ;
+    private List<Triple> triples;
 
     public BasicPattern() {
-        this(new ArrayList<Triple>()) ;
+        this(new ArrayList<Triple>());
     }
 
     public BasicPattern(BasicPattern other) {
-        this() ;
+        this();
         // Copy.
-        triples.addAll(other.triples) ;
+        triples.addAll(other.triples);
     }
 
     private BasicPattern(List<Triple> triples) {
-        this.triples = triples ;
+        this.triples = triples;
     }
 
     /**
@@ -57,89 +57,89 @@ public class BasicPattern implements Iterable<Triple> {
      * BasicPattern
      */
     public static BasicPattern wrap(List<Triple> triples) {
-        return new BasicPattern(triples) ;
+        return new BasicPattern(triples);
     }
 
     public void add(Triple t) {
-        triples.add(t) ;
+        triples.add(t);
     }
 
     public void addAll(BasicPattern other) {
-        triples.addAll(other.triples) ;
+        triples.addAll(other.triples);
     }
 
     public void add(int i, Triple t) {
-        triples.add(i, t) ;
+        triples.add(i, t);
     }
 
     public Triple get(int i) {
-        return triples.get(i) ;
+        return triples.get(i);
     }
 
     @Override
     public Iterator<Triple> iterator() {
-        return triples.listIterator() ;
+        return triples.listIterator();
     }
 
     public int size() {
-        return triples.size() ;
+        return triples.size();
     }
 
     public boolean isEmpty() {
-        return triples.isEmpty() ;
+        return triples.isEmpty();
     }
 
     public List<Triple> getList() {
-        return triples ;
+        return triples;
     }
 
     @Override
     public int hashCode() {
-        return triples.hashCode() ;
+        return triples.hashCode();
     }
 
     @Override
     public boolean equals(Object other) {
-        if ( this == other )
-            return true ;
-        if ( !(other instanceof BasicPattern) )
-            return false ;
-        BasicPattern bp = (BasicPattern)other ;
-        return triples.equals(bp.triples) ;
+        if (this == other)
+            return true;
+        if (!(other instanceof BasicPattern))
+            return false;
+        BasicPattern bp = (BasicPattern) other;
+        return triples.equals(bp.triples);
     }
 
     public boolean equiv(BasicPattern other, NodeIsomorphismMap isoMap) {
-        if ( this.triples.size() != other.triples.size() )
-            return false ;
+        if (this.triples.size() != other.triples.size())
+            return false;
 
-        for ( int i = 0 ; i < this.triples.size() ; i++ ) {
-            Triple t1 = get(i) ;
-            Triple t2 = other.get(i) ;
+        for (int i = 0; i < this.triples.size(); i++) {
+            Triple t1 = get(i);
+            Triple t2 = other.get(i);
 
-            if ( !Iso.tripleIso(t1, t2, isoMap) )
-                return false ;
+            if (!Iso.tripleIso(t1, t2, isoMap))
+                return false;
         }
-        return true ;
+        return true;
     }
 
     @Override
     public String toString() {
-        IndentedLineBuffer out = new IndentedLineBuffer() ;
-        SerializationContext sCxt = SSE.sCxt(SSE.getPrefixMapString()) ;
+        IndentedLineBuffer out = new IndentedLineBuffer();
+        SerializationContext sCxt = SSE.sCxt(SSE.getPrefixMapString());
 
-        boolean first = true ;
-        for ( Triple t : triples ) {
-            if ( !first )
-                out.print("\n") ;
+        boolean first = true;
+        for (Triple t : triples) {
+            if (!first)
+                out.print("\n");
             else
-                first = false ;
+                first = false;
             // Adds (triple ...)
             // SSE.write(buff.getIndentedWriter(), t) ;
-            out.print("(") ;
-            WriterNode.outputPlain(out, t, sCxt) ;
-            out.print(")") ;
+            out.print("(");
+            WriterNode.outputPlain(out, t, sCxt);
+            out.print(")");
         }
-        out.flush() ;
-        return out.toString() ;
+        out.flush();
+        return out.toString();
     }
 }

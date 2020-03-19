@@ -207,3 +207,5 @@ FROM
     Nodes AS R_3                         -- Var: ?Z
   ON ( T_3.s = R_3.hash )
 ```
+
+src/main/java/org/apache/jena/tdb/solver/OpExecutorTDB1.java
