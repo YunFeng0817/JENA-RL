@@ -209,3 +209,234 @@ FROM
 ```
 
 src/main/java/org/apache/jena/tdb/solver/OpExecutorTDB1.java
+[WARNING] 
+java.lang.ArrayIndexOutOfBoundsException: -1
+    at java.util.ArrayList.elementData (ArrayList.java:422)
+    at java.util.ArrayList.set (ArrayList.java:450)
+    at org.apache.jena.tdb.solver.QLearning.getPolicy (QLearning.java:170)
+    at org.apache.jena.tdb.solver.QLearning.calculateQ (QLearning.java:115)
+    at org.apache.jena.tdb.solver.OpExecutorTDB1.optimizeExecuteTriples (OpExecutorTDB1.java:203)
+    at org.apache.jena.tdb.solver.OpExecutorTDB1.optimizeExecuteQuads (OpExecutorTDB1.java:217)
+    at org.apache.jena.tdb.solver.OpExecutorTDB1.execute (OpExecutorTDB1.java:143)
+    at org.apache.jena.sparql.engine.main.ExecutionDispatch.visit (ExecutionDispatch.java:63)
+    at org.apache.jena.sparql.algebra.op.OpQuadPattern.visit (OpQuadPattern.java:92)
+    at org.apache.jena.sparql.engine.main.ExecutionDispatch.exec (ExecutionDispatch.java:45)
+    at org.apache.jena.sparql.engine.main.OpExecutor.exec (OpExecutor.java:115)
+    at org.apache.jena.tdb.solver.OpExecutorTDB1.exec (OpExecutorTDB1.java:87)
+    at org.apache.jena.sparql.engine.main.OpExecutor.execute (OpExecutor.java:388)
+    at org.apache.jena.sparql.engine.main.ExecutionDispatch.visit (ExecutionDispatch.java:238)
+    at org.apache.jena.sparql.algebra.op.OpProject.visit (OpProject.java:47)
+    at org.apache.jena.sparql.engine.main.ExecutionDispatch.exec (ExecutionDispatch.java:45)
+    at org.apache.jena.sparql.engine.main.OpExecutor.exec (OpExecutor.java:115)
+    at org.apache.jena.tdb.solver.OpExecutorTDB1.exec (OpExecutorTDB1.java:87)
+    at org.apache.jena.sparql.engine.main.OpExecutor.execute (OpExecutor.java:87)
+    at org.apache.jena.sparql.engine.main.QC.execute (QC.java:46)
+    at org.apache.jena.sparql.engine.main.QueryEngineMain.eval (QueryEngineMain.java:60)
+    at org.apache.jena.tdb.solver.QueryEngineTDB.eval (QueryEngineTDB.java:107)
+    at org.apache.jena.sparql.engine.QueryEngineBase.evaluate (QueryEngineBase.java:174)
+    at org.apache.jena.sparql.engine.QueryEngineBase.createPlan (QueryEngineBase.java:132)
+    at org.apache.jena.sparql.engine.QueryEngineBase.getPlan (QueryEngineBase.java:114)
+    at org.apache.jena.tdb.solver.QueryEngineTDB$QueryEngineFactoryTDB.create (QueryEngineTDB.java:143)
+    at org.apache.jena.sparql.engine.QueryExecutionBase.getPlan (QueryExecutionBase.java:605)
+    at org.apache.jena.sparql.engine.QueryExecutionBase.startQueryIterator (QueryExecutionBase.java:552)
+    at org.apache.jena.sparql.engine.QueryExecutionBase.execResultSet (QueryExecutionBase.java:595)
+    at org.apache.jena.sparql.engine.QueryExecutionBase.execSelect (QueryExecutionBase.java:202)
+    at StarterTDB.main (StarterTDB.java:57)
+    at sun.reflect.NativeMethodAccessorImpl.invoke0 (Native Method)
+    at sun.reflect.NativeMethodAccessorImpl.invoke (NativeMethodAccessorImpl.java:62)
+    at sun.reflect.DelegatingMethodAccessorImpl.invoke (DelegatingMethodAccessorImpl.java:43)
+    at java.lang.reflect.Method.invoke (Method.java:498)
+    at org.codehaus.mojo.exec.ExecJavaMojo$1.run (ExecJavaMojo.java:282)
+    at java.lang.Thread.run (Thread.java:748)
+[INFO] ------------------------------------------------------------------------
+Round count: 0
+State changed
+State changed
+State changed
+State changed
+State changed
+State changed
+Round count: 1
+State changed
+State changed
+State changed
+State changed
+State changed
+State changed
+Round count: 2
+State changed
+State changed
+State changed
+State changed
+State changed
+State changed
+Round count: 3
+State changed
+State changed
+State changed
+State changed
+State changed
+State changed
+Round count: 4
+State changed
+State changed
+State changed
+State changed
+State changed
+State changed
+Round count: 5
+State changed
+State changed
+State changed
+State changed
+State changed
+State changed
+Round count: 6
+State changed
+State changed
+State changed
+State changed
+State changed
+State changed
+Round count: 7
+State changed
+State changed
+State changed
+State changed
+State changed
+State changed
+Round count: 8
+State changed
+State changed
+State changed
+State changed
+State changed
+State changed
+Round count: 9
+State changed
+State changed
+State changed
+State changed
+State changed
+State changed
+Round count: 10
+State changed
+State changed
+State changed
+State changed
+State changed
+State changed
+Round count: 11
+State changed
+State changed
+State changed
+State changed
+State changed
+State changed
+Round count: 12
+State changed
+State changed
+State changed
+State changed
+State changed
+State changed
+Round count: 13
+State changed
+State changed
+State changed
+State changed
+State changed
+State changed
+Round count: 14
+State changed
+State changed
+State changed
+State changed
+State changed
+State changed
+Round count: 15
+State changed
+State changed
+State changed
+State changed
+State changed
+State changed
+Round count: 16
+State changed
+State changed
+State changed
+State changed
+State changed
+State changed
+Round count: 17
+State changed
+State changed
+State changed
+State changed
+State changed
+State changed
+Round count: 18
+State changed
+State changed
+State changed
+State changed
+State changed
+State changed
+Round count: 19
+State changed
+State changed
+State changed
+State changed
+State changed
+State changed
+Q matrix
+From state [1, 0, 1, 1, 1, 0]: [0.0, 0.0, 0.0, 0.0, 0.0, -8.3]
+From state [0, 0, 0, 0, 1, 0]: [0.0, -0.2, -0.1, 0.0, 0.0, -0.1]
+From state [0, 0, 0, 0, 1, 1]: [0.0, -0.9, -1.0, 0.0, 0.0, 0.0]
+From state [0, 0, 1, 1, 0, 0]: [0.0, -541.1, 0.0, 0.0, -5.7, 0.0]
+From state [1, 1, 1, 1, 1, 1]: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+From state [1, 1, 1, 1, 1, 0]: [0.0, 0.0, 0.0, 0.0, 0.0, -3023.8]
+From state [1, 1, 0, 1, 0, 0]: [0.0, 0.0, -1502.5, 0.0, 0.0, 0.0]
+From state [0, 1, 0, 0, 1, 0]: [0.0, 0.0, 0.0, -1.0, 0.0, -0.1]
+From state [0, 1, 0, 0, 1, 1]: [-1.0, 0.0, 0.0, -1.8, 0.0, 0.0]
+From state [0, 1, 1, 1, 0, 0]: [-2592.4, 0.0, 0.0, 0.0, 0.0, 0.0]
+From state [1, 0, 1, 1, 0, 1]: [0.0, -6.2, 0.0, 0.0, 0.0, 0.0]
+From state [1, 0, 0, 0, 1, 1]: [0.0, 0.0, 0.0, -332.5, 0.0, 0.0]
+From state [1, 0, 1, 1, 0, 0]: [0.0, 0.0, 0.0, 0.0, 0.0, -4.800000000000001]
+From state [1, 0, 1, 0, 0, 0]: [0.0, 0.0, 0.0, 0.0, 0.0, -83.10000000000001]
+From state [0, 0, 0, 0, 0, 1]: [0.0, -1.4000000000000001, 0.0, -1.6, -1.1, 0.0]
+From state [0, 0, 1, 0, 1, 1]: [-1.1, 0.0, 0.0, 0.0, 0.0, 0.0]
+From state [0, 0, 0, 0, 0, 0]: [-0.1, -0.1, 0.0, -0.5, 0.0, -0.2]
+From state [1, 1, 1, 1, 0, 0]: [0.0, 0.0, 0.0, 0.0, -3033.8, -1776.3000000000002]
+From state [1, 1, 0, 0, 1, 1]: [0.0, 0.0, -1.4000000000000001, -0.4, 0.0, 0.0]
+From state [1, 1, 1, 1, 0, 1]: [0.0, 0.0, 0.0, 0.0, -5.5, 0.0]
+From state [0, 1, 0, 0, 0, 0]: [-112.0, 0.0, 0.0, -548.1, 0.0, -0.30000000000000004]
+From state [0, 1, 0, 0, 0, 1]: [0.0, 0.0, -8.0, 0.0, -2.2, 0.0]
+From state [1, 0, 0, 1, 0, 1]: [0.0, 0.0, 0.0, 0.0, -4.1000000000000005, 0.0]
+From state [1, 0, 0, 1, 0, 0]: [0.0, 0.0, -4.6000000000000005, 0.0, -4.5, 0.0]
+From state [1, 0, 1, 1, 1, 1]: [0.0, -8.0, 0.0, 0.0, 0.0, 0.0]
+From state [1, 0, 1, 0, 1, 1]: [0.0, -1.0, 0.0, -0.1, 0.0, 0.0]
+From state [0, 0, 0, 1, 1, 1]: [-2.1, 0.0, 0.0, 0.0, 0.0, 0.0]
+From state [0, 0, 1, 0, 0, 0]: [0.0, -0.9, 0.0, 0.0, 0.0, 0.0]
+From state [1, 1, 0, 0, 0, 0]: [0.0, 0.0, -4898.8, -711.2, 0.0, 0.0]
+From state [1, 1, 1, 0, 1, 1]: [0.0, 0.0, 0.0, -1.2000000000000002, 0.0, 0.0]
+From state [0, 1, 1, 0, 0, 0]: [0.0, 0.0, 0.0, -493.8, 0.0, 0.0]
+From state [0, 1, 0, 1, 1, 0]: [0.0, 0.0, -2338.2000000000003, 0.0, 0.0, -3.6]
+From state [0, 1, 1, 0, 0, 1]: [-30.900000000000002, 0.0, 0.0, 0.0, 0.0, 0.0]
+From state [0, 1, 0, 1, 1, 1]: [0.0, 0.0, -3.2, 0.0, 0.0, 0.0]
+From state [0, 0, 1, 0, 1, 0]: [0.0, 0.0, 0.0, 0.0, 0.0, -0.1]
+From state [1, 0, 0, 1, 1, 1]: [0.0, -4.3, -330.0, 0.0, 0.0, 0.0]
+From state [1, 0, 1, 0, 0, 1]: [0.0, 0.0, 0.0, 0.0, -69.8, 0.0]
+From state [1, 0, 0, 1, 1, 0]: [0.0, -6.2, 0.0, 0.0, 0.0, 0.0]
+From state [0, 0, 0, 1, 0, 0]: [-3.1, 0.0, -3.3000000000000003, 0.0, 0.0, -5.7]
+From state [1, 0, 0, 0, 1, 0]: [0.0, 0.0, 0.0, 0.0, 0.0, -334.1]
+From state [0, 0, 0, 1, 0, 1]: [-3.6, 0.0, 0.0, 0.0, -2.1, 0.0]
+From state [0, 0, 1, 1, 1, 0]: [-7.9, 0.0, 0.0, 0.0, 0.0, 0.0]
+From state [1, 1, 1, 0, 0, 1]: [0.0, 0.0, 0.0, -45.7, 0.0, 0.0]
+From state [1, 1, 0, 1, 1, 0]: [0.0, 0.0, 0.0, 0.0, 0.0, -4.9]
+From state [1, 1, 1, 0, 0, 0]: [0.0, 0.0, 0.0, -20341.7, 0.0, 0.0]
+From state [1, 1, 0, 1, 1, 1]: [0.0, 0.0, -4.2, 0.0, 0.0, 0.0]
+From state [0, 1, 1, 1, 1, 0]: [-2319.2000000000003, 0.0, 0.0, 0.0, 0.0, 0.0]
+From state [0, 1, 1, 1, 1, 1]: [-3.1, 0.0, 0.0, 0.0, 0.0, 0.0]
+From state [0, 1, 0, 1, 0, 0]: [0.0, 0.0, 0.0, 0.0, -2325.5, 0.0]
+From state [1, 0, 0, 0, 0, 0]: [0.0, -120.10000000000001, -30.6, 0.0, -79.30000000000001, 0.0]

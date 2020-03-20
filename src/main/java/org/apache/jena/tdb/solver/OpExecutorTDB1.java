@@ -201,6 +201,7 @@ public class OpExecutorTDB1 extends OpExecutor {
 
         QLearning ql = new QLearning(pattern, execCxt);
         ql.calculateQ();
+        ql.getPolicy();
         return input;
     }
 

@@ -18,7 +18,9 @@
 
 package org.apache.jena.tdb.solver;
 
+import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -29,7 +31,6 @@ import org.apache.jena.sparql.algebra.op.OpBGP;
 import org.apache.jena.sparql.core.BasicPattern;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.engine.QueryIterator;
-import org.apache.jena.sparql.engine.iterator.QueryIter;
 import org.apache.jena.sparql.engine.iterator.QueryIterPeek;
 import org.apache.jena.sparql.engine.iterator.QueryIterRoot;
 
@@ -50,15 +51,18 @@ public class QLearning {
     private Op op;
     private QueryIterator input;
     private ExecutionContext execCxt;
+    private final String QFile = "./Q.hashmap";
 
     QLearning(BasicPattern pattern, ExecutionContext execCxt) {
         this.columnLength = pattern.size();
         this.pattern = pattern;
         this.execCxt = execCxt;
         this.State = new ArrayList<>();
+        this.Q = new HashMap<>();
         for (int i = 0; i < columnLength; i++)
             State.add(0);
         init();
+        readFile();
     }
 
     void initInputIterator() {
@@ -93,33 +97,15 @@ public class QLearning {
                 // Q(state,action)= Q(state,action) + alpha * (R(state,action) + gamma *
                 // Max(next state, all actions) - Q(state,action))
                 double maxQ = maxQ();
-                List<Triple> triples = pattern.getList();
-                BasicPattern newPattern = new BasicPattern();
-                Result.forEach(o -> newPattern.add(triples.get(o)));
-                op = new OpBGP(newPattern);
-                QueryIterator q = OpExecutorTDB1.plainExecute(op, this.input, execCxt);
-                long startTime = System.currentTimeMillis();
-                for (; q.hasNext(); q.nextBinding())
-                    ;
-                double r = startTime - System.currentTimeMillis();
+
+                double r = -runQuery();
 
                 double value = alpha * (r + gamma * maxQ);
                 QFromCurrentState.set(choice, value);
+                System.out.println("State: " + Result.toString());
             }
         }
-        printQ();
-        init();
-        getPolicy();
-        initInputIterator();
-        List<Triple> triples = pattern.getList();
-        BasicPattern newPattern = new BasicPattern();
-        Result.forEach(o -> newPattern.add(triples.get(o)));
-        op = new OpBGP(newPattern);
-        QueryIterator q = OpExecutorTDB1.plainExecute(op, this.input, execCxt);
-        long startTime = System.currentTimeMillis();
-        for (; q.hasNext(); q.nextBinding())
-            ;
-        System.out.println("Final time cost: " + (System.currentTimeMillis() - startTime));
+        writeFile();
     }
 
     boolean isFinalState() {
@@ -137,8 +123,10 @@ public class QLearning {
 
     List<Double> getQFromCurrentState() {
         if (!Q.containsKey(State)) {
-            List<Double> newValue = new ArrayList<>(columnLength);
-            Q.put(State, newValue);
+            List<Double> newValue = new ArrayList<>();
+            for (int i = 0; i < columnLength; i++)
+                newValue.add(0.0);
+            Q.put(new ArrayList<>(State), newValue);
         }
         return Q.get(State);
 
@@ -149,36 +137,42 @@ public class QLearning {
         List<Double> QFromNextState = getQFromCurrentState();
 
         // the learning rate and eagerness will keep the W value above the lowest reward
-        double maxValue = Double.MIN_VALUE;
+        double maxValue = Double.NEGATIVE_INFINITY;
         for (int nextAction : actionsFromState) {
             double value = QFromNextState.get(nextAction);
 
             if (value > maxValue)
                 maxValue = value;
         }
-        return maxValue;
+        return maxValue == Double.NEGATIVE_INFINITY ? 0 : maxValue;
     }
 
     void getPolicy() {
+        init();
+        printQ();
         while (!isFinalState()) {
             int nextAction = getPolicyFromState();
             State.set(nextAction, 1);
             Result.add(nextAction);
         }
+        long costTime = runQuery();
+        System.out.println("Policy: " + Result.toString());
+        System.out.println("Final time cost: " + costTime);
     }
 
     int getPolicyFromState() {
         List<Integer> actionsFromState = possibleActionsFromState();
         List<Double> QFromCurrentState = getQFromCurrentState();
 
-        double maxValue = Double.MIN_VALUE;
+        double maxValue = Double.NEGATIVE_INFINITY;
         int policyGotoState = -1;
+        // System.out.println(State);
+        // System.out.println(QFromCurrentState);
 
         // Pick to move to the state that has the maximum Q value
         for (int nextState : actionsFromState) {
             double value = QFromCurrentState.get(nextState);
-
-            if (value > maxValue) {
+            if (value < 0 && value > maxValue) {
                 maxValue = value;
                 policyGotoState = nextState;
             }
@@ -186,10 +180,49 @@ public class QLearning {
         return policyGotoState;
     }
 
+    long runQuery() {
+        initInputIterator();
+        List<Triple> triples = pattern.getList();
+        BasicPattern newPattern = new BasicPattern();
+        Result.forEach(o -> newPattern.add(triples.get(o)));
+        op = new OpBGP(newPattern);
+        QueryIterator q = OpExecutorTDB1.plainExecute(op, this.input, execCxt);
+        long startTime = System.currentTimeMillis();
+        for (; q.hasNext(); q.nextBinding())
+            ;
+        return System.currentTimeMillis() - startTime;
+    }
+
     void printQ() {
         System.out.println("Q matrix");
         for (Map.Entry<List<Integer>, List<Double>> entry : Q.entrySet()) {
-            System.out.print("From state " + entry.getKey().toString() + ": " + entry.getValue().toString());
+            System.out.println("From state " + entry.getKey().toString() + ": " + entry.getValue().toString());
+        }
+    }
+
+    void writeFile() {
+        FileOutputStream fos;
+        try {
+            fos = new FileOutputStream(QFile);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(this.Q);
+            oos.flush();
+            oos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    void readFile() {
+        try {
+            FileInputStream fis = new FileInputStream(this.QFile);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            this.Q = (HashMap<List<Integer>, List<Double>>) ois.readObject();
+            ois.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
         }
     }
 }
