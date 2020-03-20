@@ -186,6 +186,7 @@ public class OpExecutorTDB1 extends OpExecutor {
                 input = peek; // Must pass on
                 // pattern = reorder(pattern, peek, transform);
                 // ReorderProc proc = new ReorderProcIndexes(new int[] { 2, 4, 0, 3, 1, 5 });
+                // ReorderProc proc = new ReorderProcIndexes(new int[] { 1, 4, 5, 2, 0, 3 });
                 // Then reorder original patten
                 // pattern = proc.reorder(pattern);
             }
@@ -198,6 +199,12 @@ public class OpExecutorTDB1 extends OpExecutor {
             op = TransformFilterPlacement.transform(exprs, pattern);
         else
             op = new OpBGP(pattern);
+
+        // QueryIterator q = plainExecute(op, input, execCxt);
+        // long startTime = System.currentTimeMillis();
+        // for (; q.hasNext(); q.nextBinding())
+        // ;
+        // System.out.println(System.currentTimeMillis() - startTime);
 
         QLearning ql = new QLearning(pattern, execCxt);
         ql.calculateQ();
