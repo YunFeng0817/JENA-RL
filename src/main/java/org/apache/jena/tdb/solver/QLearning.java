@@ -33,6 +33,8 @@ import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.engine.QueryIterator;
 import org.apache.jena.sparql.engine.iterator.QueryIterPeek;
 import org.apache.jena.sparql.engine.iterator.QueryIterRoot;
+import org.apache.jena.sparql.graph.NodeConst;
+import org.apache.jena.tdb.solver.stats.StatsResults;
 
 public class QLearning {
 
@@ -49,6 +51,9 @@ public class QLearning {
     private QueryIterator input;
     private ExecutionContext execCxt;
     private final String QFile = "./Q.hashmap"; // the file stored the Q value table
+    private StatsResults statsResults;
+    private final static String statisticsFile = "Statistics.object";
+    private List<String> triples;
 
     QLearning(BasicPattern pattern, ExecutionContext execCxt) {
         this.columnLength = pattern.size();
@@ -60,6 +65,31 @@ public class QLearning {
             State.add(0);
         init();
         this.Q = (Map<List<Integer>, List<Double>>) readFile(this.QFile);
+        /**
+         * get statistics data from the object file
+         */
+        statsResults = (StatsResults) readFile(statisticsFile);
+        // Stats.write(System.out, statisticsResult);
+        preProcessingTriples();
+    }
+
+    void preProcessingTriples() {
+        this.triples = new ArrayList<>();
+        for (Triple triple : pattern.getList()) {
+            this.triples.add(getTripleIndex(triple));
+        }
+    }
+
+    String getTripleIndex(Triple triple) {
+        if (NodeConst.nodeRDFType.equals(triple.getPredicate())) {
+            return triple.getObject().getURI();
+        } else if (triple.getPredicate().isConcrete())
+            return triple.getPredicate().getURI();
+        else {
+            Exception e = new Exception("Unknown triple type");
+            e.printStackTrace();
+            return "";
+        }
     }
 
     void initInputIterator() {

@@ -55,12 +55,6 @@ public class StarterTDB {
         // "./Data/University2.nt"), "N-TRIPLE");
 
         /**
-         * get statistics data from the object file
-         */
-        statisticsResult = (StatsResults) QLearning.readFile(statisticsFile);
-        // Stats.write(System.out, statisticsResult);
-
-        /**
          * execute and get query results
          */
         try (QueryExecution qe = QueryExecutionFactory.create(query, ds)) {
