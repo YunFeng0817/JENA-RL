@@ -62,7 +62,7 @@ public class QLearning {
         for (int i = 0; i < columnLength; i++)
             State.add(0);
         init();
-        readFile();
+        this.Q = (Map<List<Integer>, List<Double>>) readFile(this.QFile);
     }
 
     void initInputIterator() {
@@ -105,7 +105,7 @@ public class QLearning {
                 System.out.println("State: " + Result.toString());
             }
         }
-        writeFile();
+        writeFile(this.Q, this.QFile);
     }
 
     boolean isFinalState() {
@@ -200,12 +200,12 @@ public class QLearning {
         }
     }
 
-    void writeFile() {
+    public static void writeFile(Object object, String fileName) {
         FileOutputStream fos;
         try {
-            fos = new FileOutputStream(QFile);
+            fos = new FileOutputStream(fileName);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(this.Q);
+            oos.writeObject(object);
             oos.flush();
             oos.close();
         } catch (IOException e) {
@@ -213,16 +213,18 @@ public class QLearning {
         }
     }
 
-    void readFile() {
+    public static Object readFile(String fileName) {
+        Object result = null;
         try {
-            FileInputStream fis = new FileInputStream(this.QFile);
+            FileInputStream fis = new FileInputStream(fileName);
             ObjectInputStream ois = new ObjectInputStream(fis);
-            this.Q = (HashMap<List<Integer>, List<Double>>) ois.readObject();
+            result = ois.readObject();
             ois.close();
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
+        return result;
     }
 }

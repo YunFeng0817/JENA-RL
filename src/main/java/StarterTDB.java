@@ -17,11 +17,17 @@
  */
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.tdb.TDBFactory;
+import org.apache.jena.tdb.solver.QLearning;
+import org.apache.jena.tdb.solver.stats.Stats;
+import org.apache.jena.tdb.solver.stats.StatsCollector;
+import org.apache.jena.tdb.solver.stats.StatsResults;
 
 /**
  * Example of the usual way to connect store and issue a query. A description of
@@ -30,6 +36,10 @@ import org.apache.jena.tdb.TDBFactory;
  */
 
 public class StarterTDB {
+
+    final static String statisticsFile = "Statistics.object";
+    public static StatsResults statisticsResult = null;
+
     static public void main(String... argv) throws IOException {
 
         String queryString = loadQuery("./Query/LUBM/2.sparql");
@@ -37,34 +47,53 @@ public class StarterTDB {
         String directory = "TDB";
         Dataset ds = TDBFactory.createDataset(directory);
         Model model = ds.getDefaultModel();
-        // Op op = Algebra.compile(query);
-        // System.out.println(op.toString());
-        // dangerous!!! this line of code will wipe all data in DB
-        // store.getTableFormatter().create();
 
+        // load data
+        // loadData(model, Arrays.asList("./Data/University1.ttl",
+        // "./Data/University2.ttl"), "TURTLE");
+        // loadData(model, Arrays.asList("./Data/University1.nt",
+        // "./Data/University2.nt"), "N-TRIPLE");
+
+        // get statistics data from the object file
+        statisticsResult = (StatsResults) QLearning.readFile(statisticsFile);
+        System.out.println(statisticsResult.getPredicates().toString());
+        // Stats.write(System.out, statisticsResult);
+
+        // try (QueryExecution qe = QueryExecutionFactory.create(query, ds)) {
+        // ResultSet rs = qe.execSelect();
+        // for (; rs.hasNext();) {
+        // QuerySolution soln = rs.nextSolution();
+        // Iterator<String> vars = soln.varNames();
+        // for (; vars.hasNext();) {
+        // String varName = vars.next();
+        // System.out.println(varName + ": " + soln.get(varName).toString());
+        // }
+        // System.out.println("------------");
+        // }
+        // }
+    }
+
+    /**
+     * add data to TDB and store statistics data into a file
+     */
+
+    /**
+     * 
+     * @param model graph model object
+     * @param files data files to be loaded
+     * @param type  data file type: "TURTLE" or "N-TRIPLE" or "N3"
+     */
+    static void loadData(Model model, List<String> files, String type) {
         // load data from files
-        // System.out.println("Starting loading data...");
-        // model = model.read("./Data/University1.nt", "N-TRIPLE");
-        // model = model.read("./Data/University2.nt", "N-TRIPLE");
-        // System.out.println("Finished loading data!");
-
-        // Must be a DatasetStore to trigger the SDB query engine.
-        // Creating a graph from the Store, and adding it to a general
-        // purpose dataset will not necessarily exploit full SQL generation.
-        // The right answers will be obtained but slowly.
-
-        try (QueryExecution qe = QueryExecutionFactory.create(query, ds)) {
-            ResultSet rs = qe.execSelect();
-            for (; rs.hasNext();) {
-                QuerySolution soln = rs.nextSolution();
-                Iterator<String> vars = soln.varNames();
-                for (; vars.hasNext();) {
-                    String varName = vars.next();
-                    System.out.println(varName + ": " + soln.get(varName).toString());
-                }
-                System.out.println("------------");
-            }
+        System.out.println("Starting loading data...");
+        for (String file : files) {
+            System.out.println("Loading data file: " + file);
+            model = model.read(file, type);
         }
+        System.out.println("Finished loading data!");
+        StatsCollector sc = Stats.gather(model.getGraph());
+        QLearning.writeFile(sc.results(), statisticsFile);
+        System.out.println("Finished writing statistics data into file: " + statisticsFile);
     }
 
     /**
