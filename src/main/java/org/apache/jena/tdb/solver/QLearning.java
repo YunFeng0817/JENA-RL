@@ -43,8 +43,8 @@ public class QLearning {
 
     private int columnLength = 0;
 
-    private Map<List<Integer>, List<Double>> Q; // Q learning
-    private List<Integer> State; // store state
+    private Map<List<String>, Map<String, Double>> Q; // Q learning
+    private List<String> State; // store state
     private ArrayList<Integer> Result; // store the final join sequence
     private BasicPattern pattern; // store all original triples
     private Op op;
@@ -61,10 +61,8 @@ public class QLearning {
         this.execCxt = execCxt;
         this.State = new ArrayList<>();
         this.Q = new HashMap<>();
-        for (int i = 0; i < columnLength; i++)
-            State.add(0);
         init();
-        this.Q = (Map<List<Integer>, List<Double>>) readFile(this.QFile);
+        this.Q = (Map<List<String>, Map<String, Double>>) readFile(this.QFile);
         /**
          * get statistics data from the object file
          */
@@ -102,8 +100,7 @@ public class QLearning {
      * initiate some variables every time before the start of a new training round
      */
     void init() {
-        for (int i = 0; i < columnLength; i++)
-            State.set(i, 0);
+        State.clear();
         Result = new ArrayList<>();
     }
 
@@ -119,12 +116,12 @@ public class QLearning {
             while (!isFinalState()) {
                 initInputIterator();
                 List<Integer> actionsFromCurrentState = possibleActionsFromState();
-                List<Double> QFromCurrentState = getQFromCurrentState();
+                Map<String, Double> QFromCurrentState = getQFromCurrentState();
 
                 // Pick a random action from the ones possible
                 int index = rand.nextInt(actionsFromCurrentState.size());
                 int choice = actionsFromCurrentState.get(index);
-                State.set(choice, 1);
+                State.add(triples.get(choice));
                 Result.add(choice);
 
                 // Q(state,action)= Q(state,action) + alpha * (R(state,action) + gamma *
@@ -134,7 +131,7 @@ public class QLearning {
                 double r = -runQuery();
 
                 double value = alpha * (r + gamma * maxQ);
-                QFromCurrentState.set(choice, value);
+                QFromCurrentState.put(triples.get(choice), value);
                 System.out.println("State: " + Result.toString());
             }
         }
@@ -158,9 +155,10 @@ public class QLearning {
      */
     List<Integer> possibleActionsFromState() {
         List<Integer> result = new ArrayList<>();
-        for (int i = 0; i < columnLength; i++)
-            if (this.State.get(i) == 0)
+        for (int i = 0; i < columnLength; i++) {
+            if (!State.contains(triples.get(i)))
                 result.add(i);
+        }
         return result;
     }
 
@@ -169,11 +167,9 @@ public class QLearning {
      *
      * @return the action-QValue list
      */
-    List<Double> getQFromCurrentState() {
+    Map<String, Double> getQFromCurrentState() {
         if (!Q.containsKey(State)) {
-            List<Double> newValue = new ArrayList<>();
-            for (int i = 0; i < columnLength; i++)
-                newValue.add(0.0);
+            Map<String, Double> newValue = new HashMap<>();
             Q.put(new ArrayList<>(State), newValue);
         }
         return Q.get(State);
@@ -187,15 +183,17 @@ public class QLearning {
      */
     double maxQ() {
         List<Integer> actionsFromState = possibleActionsFromState();
-        List<Double> QFromNextState = getQFromCurrentState();
+        Map<String, Double> QFromNextState = getQFromCurrentState();
 
         // the learning rate and eagerness will keep the W value above the lowest reward
         double maxValue = Double.NEGATIVE_INFINITY;
         for (int nextAction : actionsFromState) {
-            double value = QFromNextState.get(nextAction);
+            if (QFromNextState.containsKey(triples.get(nextAction))) {
+                double value = QFromNextState.get(triples.get(nextAction));
+                if (value > maxValue)
+                    maxValue = value;
+            }
 
-            if (value > maxValue)
-                maxValue = value;
         }
         return maxValue == Double.NEGATIVE_INFINITY ? 0 : maxValue;
     }
@@ -209,7 +207,7 @@ public class QLearning {
         printQ();
         while (!isFinalState()) {
             int nextAction = getPolicyFromState();
-            State.set(nextAction, 1);
+            State.add(triples.get(nextAction));
             Result.add(nextAction);
         }
         long costTime = runQuery();
@@ -224,7 +222,7 @@ public class QLearning {
      */
     int getPolicyFromState() {
         List<Integer> actionsFromState = possibleActionsFromState();
-        List<Double> QFromCurrentState = getQFromCurrentState();
+        Map<String, Double> QFromCurrentState = getQFromCurrentState();
 
         double maxValue = Double.NEGATIVE_INFINITY;
         int policyGotoState = -1;
@@ -232,14 +230,16 @@ public class QLearning {
         // System.out.println(QFromCurrentState);
 
         // Pick to move to the state that has the maximum Q value
-        for (int nextState : actionsFromState) {
-            double value = QFromCurrentState.get(nextState);
-            if (value < 0 && value > maxValue) {
-                maxValue = value;
-                policyGotoState = nextState;
+        for (int nextAction : actionsFromState) {
+            if (QFromCurrentState.containsKey(triples.get(nextAction))) {
+                double value = QFromCurrentState.get(triples.get(nextAction));
+                if (value > maxValue) {
+                    maxValue = value;
+                    policyGotoState = nextAction;
+                }
             }
         }
-        return policyGotoState;
+        return policyGotoState == -1 ? actionsFromState.get(0) : policyGotoState;
     }
 
     /**
@@ -265,7 +265,7 @@ public class QLearning {
      */
     void printQ() {
         System.out.println("Q matrix");
-        for (Map.Entry<List<Integer>, List<Double>> entry : Q.entrySet()) {
+        for (Map.Entry<List<String>, Map<String, Double>> entry : Q.entrySet()) {
             System.out.println("From state " + entry.getKey().toString() + ": " + entry.getValue().toString());
         }
     }
