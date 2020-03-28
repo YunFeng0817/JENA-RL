@@ -41,17 +41,14 @@ public class QLearning {
 
     private int columnLength = 0;
 
-    // private final int reward = 100;
-    // private final int penalty = -10;
-
     private Map<List<Integer>, List<Double>> Q; // Q learning
-    private List<Integer> State;
-    private ArrayList<Integer> Result;
-    private BasicPattern pattern;
+    private List<Integer> State; // store state
+    private ArrayList<Integer> Result; // store the final join sequence
+    private BasicPattern pattern; // store all original triples
     private Op op;
     private QueryIterator input;
     private ExecutionContext execCxt;
-    private final String QFile = "./Q.hashmap";
+    private final String QFile = "./Q.hashmap"; // the file stored the Q value table
 
     QLearning(BasicPattern pattern, ExecutionContext execCxt) {
         this.columnLength = pattern.size();
@@ -71,12 +68,18 @@ public class QLearning {
         this.input = peek; // Must pass on
     }
 
+    /**
+     * initiate some variables every time before the start of a new training round
+     */
     void init() {
         for (int i = 0; i < columnLength; i++)
             State.set(i, 0);
         Result = new ArrayList<>();
     }
 
+    /**
+     * calculate Q value(training process)
+     */
     void calculateQ() {
         Random rand = new Random();
 
@@ -108,11 +111,21 @@ public class QLearning {
         writeFile(this.Q, this.QFile);
     }
 
+    /**
+     * judge if the current state is final state
+     * 
+     * @return boolean flag
+     */
     boolean isFinalState() {
 
         return Result.size() == columnLength;
     }
 
+    /**
+     * get all possible action at the current state
+     * 
+     * @return all possible action stored in a list
+     */
     List<Integer> possibleActionsFromState() {
         List<Integer> result = new ArrayList<>();
         for (int i = 0; i < columnLength; i++)
@@ -121,6 +134,11 @@ public class QLearning {
         return result;
     }
 
+    /**
+     * get action-QValue list at the current state
+     *
+     * @return the action-QValue list
+     */
     List<Double> getQFromCurrentState() {
         if (!Q.containsKey(State)) {
             List<Double> newValue = new ArrayList<>();
@@ -132,6 +150,11 @@ public class QLearning {
 
     }
 
+    /**
+     * get max Q value at the current state according Q value table
+     * 
+     * @return
+     */
     double maxQ() {
         List<Integer> actionsFromState = possibleActionsFromState();
         List<Double> QFromNextState = getQFromCurrentState();
@@ -147,6 +170,10 @@ public class QLearning {
         return maxValue == Double.NEGATIVE_INFINITY ? 0 : maxValue;
     }
 
+    /**
+     * get the best execution policy according to Q value table and get execution
+     * result(time cost)
+     */
     void getPolicy() {
         init();
         printQ();
@@ -160,6 +187,11 @@ public class QLearning {
         System.out.println("Final time cost: " + costTime);
     }
 
+    /**
+     * get the best action choice at the current state according to Q value table
+     * 
+     * @return action number(ID)
+     */
     int getPolicyFromState() {
         List<Integer> actionsFromState = possibleActionsFromState();
         List<Double> QFromCurrentState = getQFromCurrentState();
@@ -180,6 +212,11 @@ public class QLearning {
         return policyGotoState;
     }
 
+    /**
+     * run query to get execution time
+     * 
+     * @return execution time. unit: ms
+     */
     long runQuery() {
         initInputIterator();
         List<Triple> triples = pattern.getList();
@@ -193,6 +230,9 @@ public class QLearning {
         return System.currentTimeMillis() - startTime;
     }
 
+    /**
+     * print Q value
+     */
     void printQ() {
         System.out.println("Q matrix");
         for (Map.Entry<List<Integer>, List<Double>> entry : Q.entrySet()) {
@@ -200,6 +240,12 @@ public class QLearning {
         }
     }
 
+    /**
+     * write an object into a file
+     * 
+     * @param object   the object to write
+     * @param fileName file name to write
+     */
     public static void writeFile(Object object, String fileName) {
         FileOutputStream fos;
         try {
@@ -213,6 +259,12 @@ public class QLearning {
         }
     }
 
+    /**
+     * read an object from an file that is written by writeFile function
+     * 
+     * @param fileName file name to read from
+     * @return the Object read from the file
+     */
     public static Object readFile(String fileName) {
         Object result = null;
         try {

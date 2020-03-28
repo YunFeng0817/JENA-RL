@@ -17,9 +17,7 @@
  */
 
 import java.io.*;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
@@ -48,36 +46,39 @@ public class StarterTDB {
         Dataset ds = TDBFactory.createDataset(directory);
         Model model = ds.getDefaultModel();
 
-        // load data
+        /**
+         * load part of LUBM data into TDB
+         */
         // loadData(model, Arrays.asList("./Data/University1.ttl",
         // "./Data/University2.ttl"), "TURTLE");
         // loadData(model, Arrays.asList("./Data/University1.nt",
         // "./Data/University2.nt"), "N-TRIPLE");
 
-        // get statistics data from the object file
+        /**
+         * get statistics data from the object file
+         */
         statisticsResult = (StatsResults) QLearning.readFile(statisticsFile);
-        System.out.println(statisticsResult.getPredicates().toString());
         // Stats.write(System.out, statisticsResult);
 
-        // try (QueryExecution qe = QueryExecutionFactory.create(query, ds)) {
-        // ResultSet rs = qe.execSelect();
-        // for (; rs.hasNext();) {
-        // QuerySolution soln = rs.nextSolution();
-        // Iterator<String> vars = soln.varNames();
-        // for (; vars.hasNext();) {
-        // String varName = vars.next();
-        // System.out.println(varName + ": " + soln.get(varName).toString());
-        // }
-        // System.out.println("------------");
-        // }
-        // }
+        /**
+         * execute and get query results
+         */
+        try (QueryExecution qe = QueryExecutionFactory.create(query, ds)) {
+            ResultSet rs = qe.execSelect();
+            for (; rs.hasNext();) {
+                QuerySolution soln = rs.nextSolution();
+                Iterator<String> vars = soln.varNames();
+                for (; vars.hasNext();) {
+                    String varName = vars.next();
+                    System.out.println(varName + ": " + soln.get(varName).toString());
+                }
+                System.out.println("------------");
+            }
+        }
     }
 
     /**
      * add data to TDB and store statistics data into a file
-     */
-
-    /**
      * 
      * @param model graph model object
      * @param files data files to be loaded
