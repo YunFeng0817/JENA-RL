@@ -58,6 +58,12 @@
       <version>3.14.0</version>
       <classifier>tests</classifier>
       <scope>test</scope>
+      <exclusions>
+            <exclusion>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpcore</artifactId>
+            </exclusion>
+        </exclusions>
     </dependency>
 
     <dependency>
@@ -125,7 +131,83 @@
       <artifactId>libtensorflow_jni_gpu</artifactId>
       <version>1.15.0</version>
     </dependency>
-    
+
+    <dependency>
+        <groupId>org.nd4j</groupId>
+        <artifactId>nd4j-native-platform</artifactId>
+        <version>1.0.0-beta6</version>
+    </dependency>
+    <!-- <dependency>
+        <groupId>org.nd4j</groupId>
+        <artifactId>nd4j-cuda-9.2-platform</artifactId>
+        <version>1.0.0-beta6</version>
+    </dependency> -->
+    <!-- <dependency>
+        <groupId>org.nd4j</groupId>
+        <artifactId>nd4j-cuda-10.0-platform</artifactId>
+        <version>1.0.0-beta6</version>
+    </dependency> -->
+    <!-- <dependency>
+        <groupId>org.nd4j</groupId>
+        <artifactId>nd4j-cuda-10.1-platform</artifactId>
+        <version>1.0.0-beta6</version>
+    </dependency> -->
+    <dependency>
+        <groupId>org.nd4j</groupId>
+        <artifactId>nd4j-cuda-10.2-platform</artifactId>
+        <version>1.0.0-beta6</version>
+    </dependency>
+    <dependency>
+        <groupId>org.deeplearning4j</groupId>
+        <artifactId>rl4j-malmo</artifactId>
+        <version>1.0.0-beta6</version>
+        <exclusions>
+            <exclusion>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpcore</artifactId>
+            </exclusion>
+            <exclusion>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpmime</artifactId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+    <dependency>
+            <groupId>com.microsoft.msr.malmo</groupId>
+            <artifactId>MalmoJavaJar</artifactId>
+            <version>0.30.0</version>
+    </dependency>
+    <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-classic</artifactId>
+        <version>1.2.3</version>
+    </dependency>        
+
+    <dependency>
+        <groupId>org.deeplearning4j</groupId>
+        <artifactId>rl4j-core</artifactId>
+        <version>1.0.0-beta6</version>
+        <exclusions>
+            <exclusion>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpcore</artifactId>
+            </exclusion>
+            <exclusion>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpmime</artifactId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+    <dependency>
+        <groupId>org.deeplearning4j</groupId>
+        <artifactId>rl4j-gym</artifactId>
+        <version>1.0.0-beta6</version>
+    </dependency>
+    <dependency>
+        <groupId>org.deeplearning4j</groupId>
+        <artifactId>rl4j-ale</artifactId>
+        <version>1.0.0-beta6</version>
+    </dependency>
 
   </dependencies>
 
