@@ -1,20 +1,35 @@
+package org.apache.jena.tdb.solver;
+
+import java.util.*;
+
+import org.apache.jena.graph.Node;
+import org.apache.jena.tdb.solver.stats.StatsResults;
 import org.deeplearning4j.gym.StepReply;
 import org.deeplearning4j.rl4j.mdp.MDP;
 import org.deeplearning4j.rl4j.space.ActionSpace;
+import org.deeplearning4j.rl4j.space.DiscreteSpace;
 import org.deeplearning4j.rl4j.space.ObservationSpace;
 
-public class MyMDP<O, A, AS extends ActionSpace<A>> implements MDP<O, A, AS> {
+public class BgpMDP<O, A, AS extends ActionSpace<A>> implements MDP<O, A, AS> {
+
+    private DiscreteSpace actionSpace;
+    private ObservationSpace<O> observationSpace;
+    private boolean done = false;
+    private StatsResults statsResults;
+    private final static String statisticsFile = "Statistics.object";
+
+    BgpMDP() {
+
+    }
 
     @Override
     public ObservationSpace<O> getObservationSpace() {
-        // TODO Auto-generated method stub
-        return null;
+        return observationSpace;
     }
 
     @Override
     public AS getActionSpace() {
-        // TODO Auto-generated method stub
-        return null;
+        return (AS) actionSpace;
     }
 
     @Override

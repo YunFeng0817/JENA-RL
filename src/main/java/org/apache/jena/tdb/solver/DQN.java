@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpBGP;
@@ -36,7 +37,7 @@ import org.apache.jena.sparql.engine.iterator.QueryIterRoot;
 import org.apache.jena.sparql.graph.NodeConst;
 import org.apache.jena.tdb.solver.stats.StatsResults;
 
-public class QLearning {
+public class DQN {
 
     private final double alpha = 0.1; // Learning rate
     private final double gamma = 0.9; // Eagerness - 0 looks in the near future, 1 looks in the distant future
@@ -53,30 +54,76 @@ public class QLearning {
     private final String QFile = "./Q.hashmap"; // the file stored the Q value table
     private StatsResults statsResults;
     private final static String statisticsFile = "Statistics.object";
+    private final static String indexEncodingFile = "indexEncoding.object";
+    private final static String indexDecodingFile = "indexDecoding.object";
     private List<String> triples;
 
-    QLearning(BasicPattern pattern, ExecutionContext execCxt) {
+    private static Map<String, Integer> indexEncoding = null;
+    private static Map<Integer, String> indexDecoding = null;
+
+    DQN(BasicPattern pattern, ExecutionContext execCxt) {
         this.columnLength = pattern.size();
         this.pattern = pattern;
         this.execCxt = execCxt;
         this.State = new ArrayList<>();
         this.Q = new HashMap<>();
-        init();
-        try {
-            this.Q = (Map<List<String>, Map<String, Double>>) readFile(this.QFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        /**
-         * get statistics data from the object file
-         */
-        try {
-            statsResults = (StatsResults) readFile(statisticsFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        encodeIndexes();
+        // init();
+        // this.Q = (Map<List<String>, Map<String, Double>>) readFile(this.QFile);
+        // statsResults = (StatsResults) readFile(statisticsFile);
         // Stats.write(System.out, statisticsResult);
-        preProcessingTriples();
+        // preProcessingTriples();
+    }
+
+    public void encodeIndexes() {
+        try {
+            indexEncoding = (Map<String, Integer>) QLearning.readFile(indexEncodingFile);
+            indexDecoding = (Map<Integer, String>) QLearning.readFile(indexDecodingFile);
+        } catch (IOException e) {
+            /**
+             * get statistics data from the object file
+             */
+            try {
+                statsResults = (StatsResults) QLearning.readFile(statisticsFile);
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+
+            indexEncoding = new HashMap<>();
+            indexDecoding = new HashMap<>();
+            int indexCount = 0;
+            for (Node node : statsResults.getPredicates().keySet()) {
+                indexEncoding.put(getIndexString(node, "Predicate"), indexCount);
+                indexDecoding.put(indexCount, getIndexString(node, "Predicate"));
+                indexCount++;
+            }
+            for (Node node : statsResults.getTypes().keySet()) {
+                indexEncoding.put(getIndexString(node, "Type"), indexCount);
+                indexDecoding.put(indexCount, getIndexString(node, "Type"));
+                indexCount++;
+            }
+            QLearning.writeFile(indexEncoding, indexEncodingFile);
+            QLearning.writeFile(indexDecoding, indexDecodingFile);
+        }
+    }
+
+    public static String getIndexString(Node node, String type) {
+        switch (type) {
+            case "Predicate":
+                return "P" + node.getURI();
+            case "Type":
+                return "T" + node.getURI();
+            default:
+                return "";
+        }
+    }
+
+    public static int encodeIndex(String index) {
+        return indexEncoding.get(index);
+    }
+
+    public static String decodeIndex(int code) {
+        return indexDecoding.get(code);
     }
 
     void preProcessingTriples() {
@@ -302,15 +349,16 @@ public class QLearning {
      * 
      * @param fileName file name to read from
      * @return the Object read from the file
-     * @throws IOException
      */
-    public static Object readFile(String fileName) throws IOException {
+    public static Object readFile(String fileName) {
         Object result = null;
         try {
             FileInputStream fis = new FileInputStream(fileName);
             ObjectInputStream ois = new ObjectInputStream(fis);
             result = ois.readObject();
             ois.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }

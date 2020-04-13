@@ -40,6 +40,15 @@ public class StarterTDB {
 
     static public void main(String... argv) throws IOException {
 
+        Set<String> artifactoryLoggers = new HashSet<>(
+                Arrays.asList("org.apache.http", "groovyx.net.http", "org.apache.jena"));
+        for (String log : artifactoryLoggers) {
+            ch.qos.logback.classic.Logger artLogger = (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory
+                    .getLogger(log);
+            artLogger.setLevel(ch.qos.logback.classic.Level.INFO);
+            artLogger.setAdditive(false);
+        }
+
         String queryString = loadQuery("./Query/LUBM/2.sparql");
         Query query = QueryFactory.create(queryString);
         String directory = "TDB";

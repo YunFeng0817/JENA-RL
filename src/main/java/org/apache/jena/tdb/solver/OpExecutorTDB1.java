@@ -206,9 +206,11 @@ public class OpExecutorTDB1 extends OpExecutor {
         // ;
         // System.out.println(System.currentTimeMillis() - startTime);
 
-        QLearning ql = new QLearning(pattern, execCxt);
-        ql.calculateQ();
-        ql.getPolicy();
+        // QLearning ql = new QLearning(pattern, execCxt);
+        // ql.calculateQ();
+        // ql.getPolicy();
+
+        DQN dqn = new DQN(pattern, execCxt);
         return input;
     }
 
