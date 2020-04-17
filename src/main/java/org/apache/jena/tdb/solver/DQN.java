@@ -68,7 +68,7 @@ public class DQN {
 
     public static QLearning.QLConfiguration CARTPOLE_QL = new QLearning.QLConfiguration(123, // Random seed
             200, // Max step By epoch
-            15, // Max step
+            150, // Max step
             150000, // Max size of experience replay
             32, // size of batches
             100, // target update (hard)
@@ -116,28 +116,30 @@ public class DQN {
 
     public void plan() throws IOException {
         // load the previous agent
-        DQNPolicy<Box> pol2 = DQNPolicy.load("./pol1");
+        BgpPolicy pol2 = BgpPolicy.load("./pol1");
 
         BgpMDP<Box, Integer, BgpActionSpace> mdp2 = new BgpMDP(this.dimension, pattern, execCxt);
+        pol2.setMdp(mdp2);
 
-        Learning.InitMdp<Box> initMdp = Learning.initMdp(mdp2, (IHistoryProcessor) null);
-        Box obs = initMdp.getLastObs();
-        INDArray input = Learning.getInput(mdp2, obs);
-        for (int i = 0; i < input.shape().length; i++) {
-            System.out.println(input.shape()[i]);
-        }
-        System.out.println(pol2.getNeuralNet().output(input));
+        // Learning.InitMdp<Box> initMdp = Learning.initMdp(mdp2, (IHistoryProcessor)
+        // null);
+        // Box obs = initMdp.getLastObs();
+        // INDArray input = Learning.getInput(mdp2, obs);
+        // for (int i = 0; i < input.shape().length; i++) {
+        // System.out.println(input.shape()[i]);
+        // }
+        // System.out.println(pol2.getNeuralNet().output(input));
 
-        // // evaluate the agent
-        // double rewards = 0;
-        // // for (int i = 0; i < 10; i++) {
-        // mdp2.reset();
-        // double reward = pol2.play(mdp2);
-        // rewards += reward;
-        // Logger.getAnonymousLogger().info("Reward: " + reward);
-        // // }
+        // evaluate the agent
+        double rewards = 0;
+        // for (int i = 0; i < 10; i++) {
+        mdp2.reset();
+        double reward = pol2.play(mdp2);
+        rewards += reward;
+        Logger.getAnonymousLogger().info("Reward: " + reward);
+        // }
 
-        // Logger.getAnonymousLogger().info("average: " + rewards / 1000);
+        Logger.getAnonymousLogger().info("average: " + rewards / 1000);
 
     }
 

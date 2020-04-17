@@ -213,7 +213,7 @@ public class OpExecutorTDB1 extends OpExecutor {
 
         DQN dqn = new DQN(pattern, execCxt);
         try {
-            // dqn.train();
+            dqn.train();
             dqn.plan();
         } catch (IOException e) {
             e.printStackTrace();
