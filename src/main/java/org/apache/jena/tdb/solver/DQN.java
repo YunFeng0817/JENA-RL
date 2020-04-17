@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
+import java.util.logging.Logger;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
@@ -34,18 +34,24 @@ import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.engine.QueryIterator;
 import org.apache.jena.sparql.engine.iterator.QueryIterPeek;
 import org.apache.jena.sparql.engine.iterator.QueryIterRoot;
-import org.apache.jena.sparql.graph.NodeConst;
 import org.apache.jena.tdb.solver.stats.StatsResults;
+import org.deeplearning4j.rl4j.network.dqn.DQNFactoryStdDense;
+import org.deeplearning4j.rl4j.observation.Observation;
+import org.deeplearning4j.rl4j.policy.*;
+import org.deeplearning4j.rl4j.util.DataManager;
+import org.deeplearning4j.rl4j.util.LegacyMDPWrapper;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.learning.config.Adam;
+import org.deeplearning4j.rl4j.learning.IHistoryProcessor;
+import org.deeplearning4j.rl4j.learning.Learning;
+import org.deeplearning4j.rl4j.learning.sync.qlearning.QLearning;
+import org.deeplearning4j.rl4j.learning.sync.qlearning.discrete.QLearningDiscreteDense;
+import org.deeplearning4j.rl4j.space.Box;
 
 public class DQN {
 
-    private final double alpha = 0.1; // Learning rate
-    private final double gamma = 0.9; // Eagerness - 0 looks in the near future, 1 looks in the distant future
-
-    private int columnLength = 0;
-
-    private Map<List<String>, Map<String, Double>> Q; // Q learning
-    private List<String> State; // store state
+    private int dimension;
     private ArrayList<Integer> Result; // store the final join sequence
     private BasicPattern pattern; // store all original triples
     private Op op;
@@ -56,35 +62,95 @@ public class DQN {
     private final static String statisticsFile = "Statistics.object";
     private final static String indexEncodingFile = "indexEncoding.object";
     private final static String indexDecodingFile = "indexDecoding.object";
-    private List<String> triples;
 
     private static Map<String, Integer> indexEncoding = null;
     private static Map<Integer, String> indexDecoding = null;
 
+    public static QLearning.QLConfiguration CARTPOLE_QL = new QLearning.QLConfiguration(123, // Random seed
+            200, // Max step By epoch
+            15, // Max step
+            150000, // Max size of experience replay
+            32, // size of batches
+            100, // target update (hard)
+            10, // num step noop warmup
+            0.1, // reward scaling
+            0.99, // gamma
+            1.0, // td-error clipping
+            0.1f, // min epsilon
+            1000, // num step for eps greedy anneal
+            true // double DQN
+    );
+
+    public static DQNFactoryStdDense.Configuration CARTPOLE_NET = DQNFactoryStdDense.Configuration.builder()
+            .updater(new Adam(0.001)).numHiddenNodes(16).numLayer(3).build();
+
     DQN(BasicPattern pattern, ExecutionContext execCxt) {
-        this.columnLength = pattern.size();
         this.pattern = pattern;
         this.execCxt = execCxt;
-        this.State = new ArrayList<>();
-        this.Q = new HashMap<>();
+
         encodeIndexes();
-        // init();
-        // this.Q = (Map<List<String>, Map<String, Double>>) readFile(this.QFile);
-        // statsResults = (StatsResults) readFile(statisticsFile);
-        // Stats.write(System.out, statisticsResult);
-        // preProcessingTriples();
+
+    }
+
+    public void train() throws IOException {
+        // record the training data in rl4j-data in a new folder (save)
+        DataManager manager = new DataManager();
+
+        // define the mdp from gym (name, render)
+        BgpMDP<Box, Integer, BgpActionSpace> mdp = new BgpMDP(this.dimension, pattern, execCxt);
+        // define the training
+        QLearningDiscreteDense<Box> dql = new QLearningDiscreteDense(mdp, CARTPOLE_NET, CARTPOLE_QL, manager);
+
+        // train
+        dql.train();
+
+        // get the final policy
+        DQNPolicy<Box> pol = dql.getPolicy();
+
+        // serialize and save (serialization showcase, but not required)
+        pol.save("./pol1");
+
+        // close the mdp (close http)
+        mdp.close();
+    }
+
+    public void plan() throws IOException {
+        // load the previous agent
+        DQNPolicy<Box> pol2 = DQNPolicy.load("./pol1");
+
+        BgpMDP<Box, Integer, BgpActionSpace> mdp2 = new BgpMDP(this.dimension, pattern, execCxt);
+
+        Learning.InitMdp<Box> initMdp = Learning.initMdp(mdp2, (IHistoryProcessor) null);
+        Box obs = initMdp.getLastObs();
+        INDArray input = Learning.getInput(mdp2, obs);
+        for (int i = 0; i < input.shape().length; i++) {
+            System.out.println(input.shape()[i]);
+        }
+        System.out.println(pol2.getNeuralNet().output(input));
+
+        // // evaluate the agent
+        // double rewards = 0;
+        // // for (int i = 0; i < 10; i++) {
+        // mdp2.reset();
+        // double reward = pol2.play(mdp2);
+        // rewards += reward;
+        // Logger.getAnonymousLogger().info("Reward: " + reward);
+        // // }
+
+        // Logger.getAnonymousLogger().info("average: " + rewards / 1000);
+
     }
 
     public void encodeIndexes() {
         try {
-            indexEncoding = (Map<String, Integer>) QLearning.readFile(indexEncodingFile);
-            indexDecoding = (Map<Integer, String>) QLearning.readFile(indexDecodingFile);
+            indexEncoding = (Map<String, Integer>) readFile(indexEncodingFile);
+            indexDecoding = (Map<Integer, String>) readFile(indexDecodingFile);
         } catch (IOException e) {
             /**
              * get statistics data from the object file
              */
             try {
-                statsResults = (StatsResults) QLearning.readFile(statisticsFile);
+                statsResults = (StatsResults) readFile(statisticsFile);
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
@@ -102,9 +168,10 @@ public class DQN {
                 indexDecoding.put(indexCount, getIndexString(node, "Type"));
                 indexCount++;
             }
-            QLearning.writeFile(indexEncoding, indexEncodingFile);
-            QLearning.writeFile(indexDecoding, indexDecodingFile);
+            writeFile(indexEncoding, indexEncodingFile);
+            writeFile(indexDecoding, indexDecodingFile);
         }
+        this.dimension = indexEncoding.size();
     }
 
     public static String getIndexString(Node node, String type) {
@@ -126,175 +193,10 @@ public class DQN {
         return indexDecoding.get(code);
     }
 
-    void preProcessingTriples() {
-        this.triples = new ArrayList<>();
-        for (Triple triple : pattern.getList()) {
-            this.triples.add(getTripleIndex(triple));
-        }
-    }
-
-    String getTripleIndex(Triple triple) {
-        if (NodeConst.nodeRDFType.equals(triple.getPredicate())) {
-            return triple.getObject().getURI();
-        } else if (triple.getPredicate().isConcrete())
-            return triple.getPredicate().getURI();
-        else {
-            Exception e = new Exception("Unknown triple type");
-            e.printStackTrace();
-            return "";
-        }
-    }
-
     void initInputIterator() {
         this.input = QueryIterRoot.create(execCxt);
         QueryIterPeek peek = QueryIterPeek.create(this.input, execCxt);
         this.input = peek; // Must pass on
-    }
-
-    /**
-     * initiate some variables every time before the start of a new training round
-     */
-    void init() {
-        State.clear();
-        Result = new ArrayList<>();
-    }
-
-    /**
-     * calculate Q value(training process)
-     */
-    void calculateQ() {
-        Random rand = new Random();
-
-        for (int i = 0; i < 20; i++) { // Train cycles
-            System.out.println("Round count: " + i);
-            init();
-            while (!isFinalState()) {
-                initInputIterator();
-                List<Integer> actionsFromCurrentState = possibleActionsFromState();
-                Map<String, Double> QFromCurrentState = getQFromCurrentState();
-
-                // Pick a random action from the ones possible
-                int index = rand.nextInt(actionsFromCurrentState.size());
-                int choice = actionsFromCurrentState.get(index);
-                State.add(triples.get(choice));
-                Result.add(choice);
-
-                // Q(state,action)= Q(state,action) + alpha * (R(state,action) + gamma *
-                // Max(next state, all actions) - Q(state,action))
-                double maxQ = maxQ();
-
-                double r = -runQuery();
-
-                double value = alpha * (r + gamma * maxQ);
-                QFromCurrentState.put(triples.get(choice), value);
-                System.out.println("State: " + Result.toString());
-            }
-        }
-        writeFile(this.Q, this.QFile);
-    }
-
-    /**
-     * judge if the current state is final state
-     * 
-     * @return boolean flag
-     */
-    boolean isFinalState() {
-
-        return Result.size() == columnLength;
-    }
-
-    /**
-     * get all possible action at the current state
-     * 
-     * @return all possible action stored in a list
-     */
-    List<Integer> possibleActionsFromState() {
-        List<Integer> result = new ArrayList<>();
-        for (int i = 0; i < columnLength; i++) {
-            if (!State.contains(triples.get(i)))
-                result.add(i);
-        }
-        return result;
-    }
-
-    /**
-     * get action-QValue list at the current state
-     *
-     * @return the action-QValue list
-     */
-    Map<String, Double> getQFromCurrentState() {
-        if (!Q.containsKey(State)) {
-            Map<String, Double> newValue = new HashMap<>();
-            Q.put(new ArrayList<>(State), newValue);
-        }
-        return Q.get(State);
-
-    }
-
-    /**
-     * get max Q value at the current state according Q value table
-     * 
-     * @return
-     */
-    double maxQ() {
-        List<Integer> actionsFromState = possibleActionsFromState();
-        Map<String, Double> QFromNextState = getQFromCurrentState();
-
-        // the learning rate and eagerness will keep the W value above the lowest reward
-        double maxValue = Double.NEGATIVE_INFINITY;
-        for (int nextAction : actionsFromState) {
-            if (QFromNextState.containsKey(triples.get(nextAction))) {
-                double value = QFromNextState.get(triples.get(nextAction));
-                if (value > maxValue)
-                    maxValue = value;
-            }
-
-        }
-        return maxValue == Double.NEGATIVE_INFINITY ? 0 : maxValue;
-    }
-
-    /**
-     * get the best execution policy according to Q value table and get execution
-     * result(time cost)
-     */
-    void getPolicy() {
-        init();
-        printQ();
-        while (!isFinalState()) {
-            int nextAction = getPolicyFromState();
-            State.add(triples.get(nextAction));
-            Result.add(nextAction);
-        }
-        long costTime = runQuery();
-        System.out.println("Policy: " + Result.toString());
-        System.out.println("Final time cost: " + costTime);
-    }
-
-    /**
-     * get the best action choice at the current state according to Q value table
-     * 
-     * @return action number(ID)
-     */
-    int getPolicyFromState() {
-        List<Integer> actionsFromState = possibleActionsFromState();
-        Map<String, Double> QFromCurrentState = getQFromCurrentState();
-
-        double maxValue = Double.NEGATIVE_INFINITY;
-        int policyGotoState = -1;
-        // System.out.println(State);
-        // System.out.println(QFromCurrentState);
-
-        // Pick to move to the state that has the maximum Q value
-        for (int nextAction : actionsFromState) {
-            if (QFromCurrentState.containsKey(triples.get(nextAction))) {
-                double value = QFromCurrentState.get(triples.get(nextAction));
-                if (value > maxValue) {
-                    maxValue = value;
-                    policyGotoState = nextAction;
-                }
-            }
-        }
-        return policyGotoState == -1 ? actionsFromState.get(0) : policyGotoState;
     }
 
     /**
@@ -313,16 +215,6 @@ public class DQN {
         for (; q.hasNext(); q.nextBinding())
             ;
         return System.currentTimeMillis() - startTime;
-    }
-
-    /**
-     * print Q value
-     */
-    void printQ() {
-        System.out.println("Q matrix");
-        for (Map.Entry<List<String>, Map<String, Double>> entry : Q.entrySet()) {
-            System.out.println("From state " + entry.getKey().toString() + ": " + entry.getValue().toString());
-        }
     }
 
     /**
@@ -349,16 +241,15 @@ public class DQN {
      * 
      * @param fileName file name to read from
      * @return the Object read from the file
+     * @throws IOException
      */
-    public static Object readFile(String fileName) {
+    public static Object readFile(String fileName) throws IOException {
         Object result = null;
         try {
             FileInputStream fis = new FileInputStream(fileName);
             ObjectInputStream ois = new ObjectInputStream(fis);
             result = ois.readObject();
             ois.close();
-        } catch (IOException e) {
-            e.printStackTrace();
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }

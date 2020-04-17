@@ -18,6 +18,7 @@
 
 package org.apache.jena.tdb.solver;
 
+import java.io.IOException;
 import java.util.function.Predicate;
 
 import org.apache.jena.atlas.lib.tuple.Tuple;
@@ -211,6 +212,12 @@ public class OpExecutorTDB1 extends OpExecutor {
         // ql.getPolicy();
 
         DQN dqn = new DQN(pattern, execCxt);
+        try {
+            // dqn.train();
+            dqn.plan();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return input;
     }
 

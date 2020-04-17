@@ -2,24 +2,69 @@ package org.apache.jena.tdb.solver;
 
 import java.util.*;
 
-import org.apache.jena.graph.Node;
-import org.apache.jena.tdb.solver.stats.StatsResults;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.sparql.algebra.Op;
+import org.apache.jena.sparql.algebra.op.OpBGP;
+import org.apache.jena.sparql.core.BasicPattern;
+import org.apache.jena.sparql.engine.ExecutionContext;
+import org.apache.jena.sparql.engine.QueryIterator;
+import org.apache.jena.sparql.engine.iterator.QueryIterPeek;
+import org.apache.jena.sparql.engine.iterator.QueryIterRoot;
+import org.apache.jena.sparql.graph.NodeConst;
 import org.deeplearning4j.gym.StepReply;
 import org.deeplearning4j.rl4j.mdp.MDP;
 import org.deeplearning4j.rl4j.space.ActionSpace;
-import org.deeplearning4j.rl4j.space.DiscreteSpace;
+import org.deeplearning4j.rl4j.space.ArrayObservationSpace;
+import org.deeplearning4j.rl4j.space.Box;
 import org.deeplearning4j.rl4j.space.ObservationSpace;
+import org.json.JSONArray;
 
 public class BgpMDP<O, A, AS extends ActionSpace<A>> implements MDP<O, A, AS> {
 
-    private DiscreteSpace actionSpace;
+    private BgpActionSpace actionSpace;
     private ObservationSpace<O> observationSpace;
-    private boolean done = false;
-    private StatsResults statsResults;
-    private final static String statisticsFile = "Statistics.object";
+    private double[] state;
+    private ArrayList<Integer> Result; // store the final join sequence
+    private int dimension = 0;
+    private BasicPattern pattern; // store all original triples
+    private List<Integer> tripleIndexes;
+    private Op op;
+    private QueryIterator input;
+    private ExecutionContext execCxt;
+    private int tripleNum;
 
-    BgpMDP() {
+    BgpMDP(int dim, BasicPattern pattern, ExecutionContext execCxt) {
+        this.dimension = dim;
+        this.state = new double[dimension];
+        observationSpace = new ArrayObservationSpace<>(new int[] { dimension });
+        this.Result = new ArrayList<>();
 
+        this.pattern = pattern;
+        this.execCxt = execCxt;
+        this.tripleNum = pattern.getList().size();
+        preProcessingTriples();
+        actionSpace = new BgpActionSpace(dimension);
+        actionSpace.setState(state);
+        actionSpace.setTripleIndexes(tripleIndexes);
+    }
+
+    void preProcessingTriples() {
+        this.tripleIndexes = new ArrayList<>();
+        for (Triple triple : pattern.getList()) {
+            this.tripleIndexes.add(getTripleIndex(triple));
+        }
+    }
+
+    int getTripleIndex(Triple triple) {
+        if (NodeConst.nodeRDFType.equals(triple.getPredicate())) {
+            return DQN.encodeIndex(DQN.getIndexString(triple.getObject(), "Type"));
+        } else if (triple.getPredicate().isConcrete())
+            return DQN.encodeIndex(DQN.getIndexString(triple.getPredicate(), "Predicate"));
+        else {
+            Exception e = new Exception("Unknown triple type");
+            e.printStackTrace();
+            return -1;
+        }
     }
 
     @Override
@@ -34,32 +79,71 @@ public class BgpMDP<O, A, AS extends ActionSpace<A>> implements MDP<O, A, AS> {
 
     @Override
     public O reset() {
-        // TODO Auto-generated method stub
-        return null;
+        for (int i = 0; i < dimension; i++) {
+            state[i] = 0;
+        }
+        Result.clear();
+        return (O) new Box(new JSONArray(state));
     }
 
     @Override
     public void close() {
-        // TODO Auto-generated method stub
-
+        System.out.println(Result.toString());
     }
 
     @Override
     public StepReply<O> step(A action) {
-        // TODO Auto-generated method stub
-        return null;
+        for (int i = 0; i < tripleNum; i++) {
+            if (tripleIndexes.get(i) == (Integer) action) {
+                Result.add(i);
+                break;
+            } else if (i == tripleNum - 1) {
+                Exception e = new Exception("Invalid Action");
+                e.printStackTrace();
+            }
+        }
+        initInputIterator();
+        state[(Integer) action] = 1;
+        double r = -runQuery();
+        if (isDone()) {
+            System.out.println("Epoch finished: " + Result);
+        }
+        System.out.println("Step: " + Result);
+        System.out.println(action);
+        return new StepReply(new Box(new JSONArray(state)), r, isDone(), null);
     }
 
     @Override
     public boolean isDone() {
-        // TODO Auto-generated method stub
-        return false;
+        return Result.size() == tripleIndexes.size();
     }
 
     @Override
     public MDP<O, A, AS> newInstance() {
-        // TODO Auto-generated method stub
-        return null;
+        return new BgpMDP<>(dimension, this.pattern, this.execCxt);
     }
 
+    /**
+     * run query to get execution time
+     * 
+     * @return execution time. unit: ms
+     */
+    long runQuery() {
+        initInputIterator();
+        List<Triple> triples = pattern.getList();
+        BasicPattern newPattern = new BasicPattern();
+        Result.forEach(o -> newPattern.add(triples.get(o)));
+        op = new OpBGP(newPattern);
+        QueryIterator q = OpExecutorTDB1.plainExecute(op, this.input, execCxt);
+        long startTime = System.currentTimeMillis();
+        for (; q.hasNext(); q.nextBinding())
+            ;
+        return System.currentTimeMillis() - startTime;
+    }
+
+    void initInputIterator() {
+        this.input = QueryIterRoot.create(execCxt);
+        QueryIterPeek peek = QueryIterPeek.create(this.input, execCxt);
+        this.input = peek; // Must pass on
+    }
 }
