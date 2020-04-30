@@ -188,6 +188,7 @@ public class OpExecutorTDB1 extends OpExecutor {
                 // pattern = reorder(pattern, peek, transform);
                 // ReorderProc proc = new ReorderProcIndexes(new int[] { 2, 4, 0, 3, 1, 5 });
                 // ReorderProc proc = new ReorderProcIndexes(new int[] { 1, 4, 5, 2, 0, 3 });
+                // ReorderProc proc = new ReorderProcIndexes(new int[] { 2, 3, 5, 4, 1, 0 });
                 // Then reorder original patten
                 // pattern = proc.reorder(pattern);
             }

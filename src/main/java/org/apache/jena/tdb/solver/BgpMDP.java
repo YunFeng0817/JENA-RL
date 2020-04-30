@@ -98,13 +98,15 @@ public class BgpMDP<O, A, AS extends ActionSpace<A>> implements MDP<O, A, AS> {
                 Result.add(i);
                 break;
             } else if (i == tripleNum - 1) {
-                Exception e = new Exception("Invalid Action");
+                Exception e = new Exception("Invalid Action" + action);
                 e.printStackTrace();
             }
         }
         initInputIterator();
         state[(Integer) action] = 1;
         double r = -runQuery();
+        // Random R = new Random();
+        // double r = R.nextDouble() * 10;
         if (isDone()) {
             System.out.println("Epoch finished: " + Result);
         }

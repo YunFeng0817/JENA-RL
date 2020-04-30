@@ -8,7 +8,6 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import java.io.IOException;
 import java.util.List;
 
-import org.deeplearning4j.rl4j.learning.Learning;
 import org.deeplearning4j.rl4j.network.dqn.DQN;
 
 public class BgpPolicy extends DQNPolicy<Box> {

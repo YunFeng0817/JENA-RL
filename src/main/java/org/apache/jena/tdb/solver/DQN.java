@@ -99,7 +99,7 @@ public class DQN {
         // define the mdp from gym (name, render)
         BgpMDP<Box, Integer, BgpActionSpace> mdp = new BgpMDP(this.dimension, pattern, execCxt);
         // define the training
-        QLearningDiscreteDense<Box> dql = new QLearningDiscreteDense(mdp, CARTPOLE_NET, CARTPOLE_QL, manager);
+        BgpLearning<Box> dql = new BgpLearning(mdp, CARTPOLE_NET, CARTPOLE_QL, manager);
 
         // train
         dql.train();
@@ -120,15 +120,6 @@ public class DQN {
 
         BgpMDP<Box, Integer, BgpActionSpace> mdp2 = new BgpMDP(this.dimension, pattern, execCxt);
         pol2.setMdp(mdp2);
-
-        // Learning.InitMdp<Box> initMdp = Learning.initMdp(mdp2, (IHistoryProcessor)
-        // null);
-        // Box obs = initMdp.getLastObs();
-        // INDArray input = Learning.getInput(mdp2, obs);
-        // for (int i = 0; i < input.shape().length; i++) {
-        // System.out.println(input.shape()[i]);
-        // }
-        // System.out.println(pol2.getNeuralNet().output(input));
 
         // evaluate the agent
         double rewards = 0;
