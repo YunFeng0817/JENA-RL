@@ -29,7 +29,6 @@ public class BgpPolicy extends DQNPolicy<Box> {
         double[] QValues = output.data().asDouble();
         double max = Double.NEGATIVE_INFINITY;
         int action = -1;
-        // System.out.println(possibleAction);
         for (Integer index : possibleAction) {
             System.out.print(" index:" + index + " value:" + QValues[index] + "|||");
             if (QValues[index] > max) {

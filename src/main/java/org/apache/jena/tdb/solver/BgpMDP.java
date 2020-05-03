@@ -26,6 +26,7 @@ public class BgpMDP<O, A, AS extends ActionSpace<A>> implements MDP<O, A, AS> {
     private ObservationSpace<O> observationSpace;
     protected double[] state;
     protected ArrayList<Integer> Result; // store the final join sequence
+    protected ArrayList<Integer> emptyIndexResult; // store the triples that are not in the DB
     private int dimension = 0;
     private BasicPattern pattern; // store all original triples
     protected List<Integer> tripleIndexes;
@@ -39,6 +40,7 @@ public class BgpMDP<O, A, AS extends ActionSpace<A>> implements MDP<O, A, AS> {
         this.state = new double[dimension];
         observationSpace = new ArrayObservationSpace<>(new int[] { dimension });
         this.Result = new ArrayList<>();
+        this.emptyIndexResult = new ArrayList<>();
 
         this.pattern = pattern;
         this.execCxt = execCxt;
@@ -51,12 +53,24 @@ public class BgpMDP<O, A, AS extends ActionSpace<A>> implements MDP<O, A, AS> {
 
     void preProcessingTriples() {
         this.tripleIndexes = new ArrayList<>();
-        for (Triple triple : pattern.getList()) {
-            this.tripleIndexes.add(getTripleIndex(triple));
+        for (int i = 0; i < tripleNum; i++) {
+            int index = getTripleIndex(pattern.getList().get(i));
+            this.tripleIndexes.add(index);
+            // the triple isn't in the DB
+            if (index == -1) {
+                this.emptyIndexResult.add(i);
+            }
         }
     }
 
+    /**
+     * get index of one triple
+     * 
+     * @param triple the triple
+     * @return index. if index==-1, the triple isn't in DB
+     */
     int getTripleIndex(Triple triple) {
+        // e.g. ?x :type :student
         if (NodeConst.nodeRDFType.equals(triple.getPredicate())) {
             return DQN.encodeIndex(DQN.getIndexString(triple.getObject(), "Type"));
         } else if (triple.getPredicate().isConcrete())
@@ -105,6 +119,8 @@ public class BgpMDP<O, A, AS extends ActionSpace<A>> implements MDP<O, A, AS> {
             state[i] = 0;
         }
         Result.clear();
+        // add triples that are not in the DB
+        Result.addAll(emptyIndexResult);
         return (O) new Box(new JSONArray(state));
     }
 

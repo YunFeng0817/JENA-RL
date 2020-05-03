@@ -123,12 +123,10 @@ public class DQN {
 
         // evaluate the agent
         double rewards = 0;
-        // for (int i = 0; i < 10; i++) {
         mdp2.reset();
         double reward = pol2.play(mdp2);
         rewards += reward;
         Logger.getAnonymousLogger().info("Reward: " + reward);
-        // }
 
         Logger.getAnonymousLogger().info("average: " + rewards / 1000);
 
@@ -178,8 +176,18 @@ public class DQN {
         }
     }
 
+    /**
+     * get the index value of one triple string
+     * 
+     * @param index the triple string
+     * @return the index value. if value==-1, the triple isn't in the DB
+     */
     public static int encodeIndex(String index) {
-        return indexEncoding.get(index);
+        try {
+            return indexEncoding.get(index);
+        } catch (NullPointerException e) {
+            return -1;
+        }
     }
 
     public static String decodeIndex(int code) {

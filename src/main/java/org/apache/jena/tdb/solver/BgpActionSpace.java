@@ -52,7 +52,8 @@ class BgpActionSpace extends DiscreteSpace {
     List<Integer> possibleActionsFromState() {
         List<Integer> result = new ArrayList<>();
         for (int i = 0; i < tripleIndexes.size(); i++) {
-            if (state[tripleIndexes.get(i)] == 0)
+            // if triple index !=-1 and has not been joined
+            if (tripleIndexes.get(i) >= 0 && state[tripleIndexes.get(i)] == 0)
                 result.add(tripleIndexes.get(i));
         }
         return result;
