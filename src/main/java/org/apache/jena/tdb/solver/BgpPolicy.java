@@ -6,7 +6,7 @@ import org.deeplearning4j.rl4j.space.Box;
 import org.nd4j.linalg.api.ndarray.INDArray;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.*;
 
 import org.deeplearning4j.rl4j.network.dqn.DQN;
 
@@ -29,12 +29,15 @@ public class BgpPolicy extends DQNPolicy<Box> {
         double[] QValues = output.data().asDouble();
         double max = Double.NEGATIVE_INFINITY;
         int action = -1;
+        // System.out.println(possibleAction);
         for (Integer index : possibleAction) {
+            System.out.print(" index:" + index + " value:" + QValues[index] + "|||");
             if (QValues[index] > max) {
                 action = index;
                 max = QValues[index];
             }
         }
+        System.out.println("action: " + action);
         return action;
     }
 

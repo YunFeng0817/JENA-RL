@@ -1,6 +1,7 @@
 package org.apache.jena.tdb.solver;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.algebra.Op;
@@ -23,15 +24,15 @@ public class BgpMDP<O, A, AS extends ActionSpace<A>> implements MDP<O, A, AS> {
 
     private BgpActionSpace actionSpace;
     private ObservationSpace<O> observationSpace;
-    private double[] state;
-    private ArrayList<Integer> Result; // store the final join sequence
+    protected double[] state;
+    protected ArrayList<Integer> Result; // store the final join sequence
     private int dimension = 0;
     private BasicPattern pattern; // store all original triples
-    private List<Integer> tripleIndexes;
+    protected List<Integer> tripleIndexes;
     private Op op;
     private QueryIterator input;
     private ExecutionContext execCxt;
-    private int tripleNum;
+    protected int tripleNum;
 
     BgpMDP(int dim, BasicPattern pattern, ExecutionContext execCxt) {
         this.dimension = dim;
@@ -77,6 +78,27 @@ public class BgpMDP<O, A, AS extends ActionSpace<A>> implements MDP<O, A, AS> {
         return (AS) actionSpace;
     }
 
+    /**
+     * @return the tripleIndexes
+     */
+    public List<Integer> getTripleIndexes() {
+        return tripleIndexes;
+    }
+
+    /**
+     * @return the result
+     */
+    public ArrayList<Integer> getResult() {
+        return Result;
+    }
+
+    /**
+     * @return the tripleNum
+     */
+    public int getTripleNum() {
+        return tripleNum;
+    }
+
     @Override
     public O reset() {
         for (int i = 0; i < dimension; i++) {
@@ -105,6 +127,7 @@ public class BgpMDP<O, A, AS extends ActionSpace<A>> implements MDP<O, A, AS> {
         initInputIterator();
         state[(Integer) action] = 1;
         double r = -runQuery();
+        r = Math.exp(r) * 10;
         // Random R = new Random();
         // double r = R.nextDouble() * 10;
         if (isDone()) {

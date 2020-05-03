@@ -67,10 +67,10 @@ public class DQN {
     private static Map<Integer, String> indexDecoding = null;
 
     public static QLearning.QLConfiguration CARTPOLE_QL = new QLearning.QLConfiguration(123, // Random seed
-            200, // Max step By epoch
-            150, // Max step
-            150000, // Max size of experience replay
-            32, // size of batches
+            2000, // Max step By epoch
+            800, // Max step
+            800, // Max size of experience replay
+            8, // size of batches
             100, // target update (hard)
             10, // num step noop warmup
             0.1, // reward scaling
@@ -78,7 +78,7 @@ public class DQN {
             1.0, // td-error clipping
             0.1f, // min epsilon
             1000, // num step for eps greedy anneal
-            true // double DQN
+            false // double DQN
     );
 
     public static DQNFactoryStdDense.Configuration CARTPOLE_NET = DQNFactoryStdDense.Configuration.builder()
@@ -118,7 +118,7 @@ public class DQN {
         // load the previous agent
         BgpPolicy pol2 = BgpPolicy.load("./pol1");
 
-        BgpMDP<Box, Integer, BgpActionSpace> mdp2 = new BgpMDP(this.dimension, pattern, execCxt);
+        BgpMDP<Box, Integer, BgpActionSpace> mdp2 = new BgpMDPPolicy(this.dimension, pattern, execCxt);
         pol2.setMdp(mdp2);
 
         // evaluate the agent
