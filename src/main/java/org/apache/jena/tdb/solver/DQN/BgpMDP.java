@@ -1,4 +1,4 @@
-package org.apache.jena.tdb.solver;
+package org.apache.jena.tdb.solver.DQN;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +12,7 @@ import org.apache.jena.sparql.engine.QueryIterator;
 import org.apache.jena.sparql.engine.iterator.QueryIterPeek;
 import org.apache.jena.sparql.engine.iterator.QueryIterRoot;
 import org.apache.jena.sparql.graph.NodeConst;
+import org.apache.jena.tdb.solver.OpExecutorTDB1;
 import org.deeplearning4j.gym.StepReply;
 import org.deeplearning4j.rl4j.mdp.MDP;
 import org.deeplearning4j.rl4j.space.ActionSpace;

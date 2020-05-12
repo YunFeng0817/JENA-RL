@@ -1,4 +1,4 @@
-package org.apache.jena.tdb.solver;
+package org.apache.jena.tdb.solver.DQN;
 
 import org.apache.jena.sparql.core.BasicPattern;
 import org.apache.jena.sparql.engine.ExecutionContext;

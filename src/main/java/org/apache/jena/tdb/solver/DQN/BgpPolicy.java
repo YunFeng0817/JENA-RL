@@ -1,4 +1,4 @@
-package org.apache.jena.tdb.solver;
+package org.apache.jena.tdb.solver.DQN;
 
 import org.deeplearning4j.rl4j.network.dqn.IDQN;
 import org.deeplearning4j.rl4j.policy.DQNPolicy;

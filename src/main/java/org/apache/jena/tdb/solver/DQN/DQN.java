@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.jena.tdb.solver;
+package org.apache.jena.tdb.solver.DQN;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -34,19 +34,13 @@ import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.engine.QueryIterator;
 import org.apache.jena.sparql.engine.iterator.QueryIterPeek;
 import org.apache.jena.sparql.engine.iterator.QueryIterRoot;
+import org.apache.jena.tdb.solver.OpExecutorTDB1;
 import org.apache.jena.tdb.solver.stats.StatsResults;
 import org.deeplearning4j.rl4j.network.dqn.DQNFactoryStdDense;
-import org.deeplearning4j.rl4j.observation.Observation;
 import org.deeplearning4j.rl4j.policy.*;
 import org.deeplearning4j.rl4j.util.DataManager;
-import org.deeplearning4j.rl4j.util.LegacyMDPWrapper;
-import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.learning.config.Adam;
-import org.deeplearning4j.rl4j.learning.IHistoryProcessor;
-import org.deeplearning4j.rl4j.learning.Learning;
 import org.deeplearning4j.rl4j.learning.sync.qlearning.QLearning;
-import org.deeplearning4j.rl4j.learning.sync.qlearning.discrete.QLearningDiscreteDense;
 import org.deeplearning4j.rl4j.space.Box;
 
 public class DQN {
@@ -84,7 +78,7 @@ public class DQN {
     public static DQNFactoryStdDense.Configuration CARTPOLE_NET = DQNFactoryStdDense.Configuration.builder()
             .updater(new Adam(0.001)).numHiddenNodes(16).numLayer(3).build();
 
-    DQN(BasicPattern pattern, ExecutionContext execCxt) {
+    public DQN(BasicPattern pattern, ExecutionContext execCxt) {
         this.pattern = pattern;
         this.execCxt = execCxt;
 

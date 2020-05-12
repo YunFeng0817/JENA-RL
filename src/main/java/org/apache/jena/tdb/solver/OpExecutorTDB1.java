@@ -44,6 +44,7 @@ import org.apache.jena.sparql.engine.optimizer.reorder.ReorderProc;
 import org.apache.jena.sparql.engine.optimizer.reorder.ReorderTransformation;
 import org.apache.jena.sparql.expr.ExprList;
 import org.apache.jena.sparql.mgt.Explain;
+import org.apache.jena.tdb.solver.DQN.DQN;
 import org.apache.jena.tdb.store.DatasetGraphTDB;
 import org.apache.jena.tdb.store.GraphTDB;
 import org.apache.jena.tdb.store.NodeId;
@@ -258,7 +259,7 @@ public class OpExecutorTDB1 extends OpExecutor {
      * Execute without modification of the op - does <b>not</b> apply special graph
      * name translations
      */
-    static QueryIterator plainExecute(Op op, QueryIterator input, ExecutionContext execCxt) {
+    public static QueryIterator plainExecute(Op op, QueryIterator input, ExecutionContext execCxt) {
         // -- Execute
         // Switch to a non-reordering executor
         // The Op may be a sequence due to TransformFilterPlacement
