@@ -52,6 +52,9 @@ public class BgpMDP<O, A, AS extends ActionSpace<A>> implements MDP<O, A, AS> {
         actionSpace.setTripleIndexes(tripleIndexes);
     }
 
+    /**
+     * encode triples
+     */
     void preProcessingTriples() {
         this.tripleIndexes = new ArrayList<>();
         for (int i = 0; i < tripleNum; i++) {

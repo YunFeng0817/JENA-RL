@@ -21,20 +21,16 @@ package org.apache.jena.tdb.solver.DQN;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
 import org.apache.jena.graph.Node;
-import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.algebra.Op;
-import org.apache.jena.sparql.algebra.op.OpBGP;
 import org.apache.jena.sparql.core.BasicPattern;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.engine.QueryIterator;
 import org.apache.jena.sparql.engine.iterator.QueryIterPeek;
 import org.apache.jena.sparql.engine.iterator.QueryIterRoot;
-import org.apache.jena.tdb.solver.OpExecutorTDB1;
 import org.apache.jena.tdb.solver.stats.StatsResults;
 import org.deeplearning4j.rl4j.network.dqn.DQNFactoryStdDense;
 import org.deeplearning4j.rl4j.policy.*;
@@ -46,9 +42,7 @@ import org.deeplearning4j.rl4j.space.Box;
 public class DQN {
 
     private int dimension;
-    private ArrayList<Integer> Result; // store the final join sequence
     private BasicPattern pattern; // store all original triples
-    private Op op;
     private QueryIterator input;
     private ExecutionContext execCxt;
     private final String QFile = "./Q.hashmap"; // the file stored the Q value table
@@ -126,6 +120,10 @@ public class DQN {
 
     }
 
+    /**
+     * try to read index encoding from files. If files don't exist, create index
+     * encoding according to statistics message and write to files
+     */
     public void encodeIndexes() {
         try {
             indexEncoding = (Map<String, Integer>) readFile(indexEncodingFile);
@@ -140,14 +138,16 @@ public class DQN {
                 e1.printStackTrace();
             }
 
-            indexEncoding = new HashMap<>();
-            indexDecoding = new HashMap<>();
+            indexEncoding = new HashMap<>(); // {key: "P"+[Predicate URI] or "T"+[Type Object URI], value: index number}
+            indexDecoding = new HashMap<>(); // {key: index number, value: "P"+[Predicate URI] or "T"+[Type Object URI]}
             int indexCount = 0;
+            // encode predicate indexes
             for (Node node : statsResults.getPredicates().keySet()) {
                 indexEncoding.put(getIndexString(node, "Predicate"), indexCount);
                 indexDecoding.put(indexCount, getIndexString(node, "Predicate"));
                 indexCount++;
             }
+            // encode type indexes
             for (Node node : statsResults.getTypes().keySet()) {
                 indexEncoding.put(getIndexString(node, "Type"), indexCount);
                 indexDecoding.put(indexCount, getIndexString(node, "Type"));
@@ -159,6 +159,13 @@ public class DQN {
         this.dimension = indexEncoding.size();
     }
 
+    /**
+     * convert from triple node to (P"+[Predicate URI] or "T"+[Type Object URI])
+     * 
+     * @param node triple node
+     * @param type "Type" or "Predicate"
+     * @return (P"+[Predicate URI] or "T"+[Type Object URI])
+     */
     public static String getIndexString(Node node, String type) {
         switch (type) {
             case "Predicate":
@@ -192,24 +199,6 @@ public class DQN {
         this.input = QueryIterRoot.create(execCxt);
         QueryIterPeek peek = QueryIterPeek.create(this.input, execCxt);
         this.input = peek; // Must pass on
-    }
-
-    /**
-     * run query to get execution time
-     * 
-     * @return execution time. unit: ms
-     */
-    long runQuery() {
-        initInputIterator();
-        List<Triple> triples = pattern.getList();
-        BasicPattern newPattern = new BasicPattern();
-        Result.forEach(o -> newPattern.add(triples.get(o)));
-        op = new OpBGP(newPattern);
-        QueryIterator q = OpExecutorTDB1.plainExecute(op, this.input, execCxt);
-        long startTime = System.currentTimeMillis();
-        for (; q.hasNext(); q.nextBinding())
-            ;
-        return System.currentTimeMillis() - startTime;
     }
 
     /**

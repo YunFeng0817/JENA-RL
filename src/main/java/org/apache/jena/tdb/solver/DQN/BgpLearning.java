@@ -13,6 +13,9 @@ import org.deeplearning4j.rl4j.util.IDataManager;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.DataSet;
 
+/**
+ * almost the same with QLearningDiscreteDense
+ */
 public class BgpLearning<O extends Encodable> extends QLearningDiscreteDense<O> {
 
     private int lastAction;
