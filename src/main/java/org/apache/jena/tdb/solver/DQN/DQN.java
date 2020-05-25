@@ -19,13 +19,11 @@
 package org.apache.jena.tdb.solver.DQN;
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
 import org.apache.jena.graph.Node;
-import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.core.BasicPattern;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.engine.QueryIterator;
@@ -45,7 +43,6 @@ public class DQN {
     private BasicPattern pattern; // store all original triples
     private QueryIterator input;
     private ExecutionContext execCxt;
-    private final String QFile = "./Q.hashmap"; // the file stored the Q value table
     private StatsResults statsResults;
     private final static String statisticsFile = "Statistics.object";
     private final static String indexEncodingFile = "indexEncoding.object";
