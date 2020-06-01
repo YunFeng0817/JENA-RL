@@ -58,10 +58,8 @@ public class StarterTDB {
         /**
          * load part of LUBM data into TDB
          */
-        // loadData(model, Arrays.asList("./Data/University1.ttl",
-        // "./Data/University2.ttl"), "TURTLE");
-        // loadData(model, Arrays.asList("./Data/University1.nt",
-        // "./Data/University2.nt"), "N-TRIPLE");
+        // loadData(model, "./Data/LUBM/", "TURTLE");
+        // loadData(model, "./Data/LUBM/", "N-TRIPLE");
 
         /**
          * execute and get query results
@@ -83,16 +81,23 @@ public class StarterTDB {
     /**
      * add data to TDB and store statistics data into a file
      * 
-     * @param model graph model object
-     * @param files data files to be loaded
-     * @param type  data file type: "TURTLE" or "N-TRIPLE" or "N3"
+     * @param model    graph model object
+     * @param filePath data files to be loaded. It could be a file or a folder
+     * @param type     data file type: "TURTLE" or "N-TRIPLE" or "N3"
      */
-    static void loadData(Model model, List<String> files, String type) {
+    static void loadData(Model model, String filePath, String type) {
         // load data from files
         System.out.println("Starting loading data...");
-        for (String file : files) {
-            System.out.println("Loading data file: " + file);
-            model = model.read(file, type);
+        File dataFile = new File(filePath);
+        File[] fileList = dataFile.listFiles();
+        if (fileList != null) {
+            for (File file : fileList) {
+                System.out.println("Loading data file: " + file.getPath());
+                model = model.read(file.getPath(), type);
+            }
+        } else if (filePath != null) {
+            System.out.println("Loading data file: " + filePath);
+            model = model.read(filePath, type);
         }
         System.out.println("Finished loading data!");
         StatsCollector sc = Stats.gather(model.getGraph());
