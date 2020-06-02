@@ -47,7 +47,8 @@ public class StarterTDB {
     static public Dataset ds;
     static ExecutorService exec = Executors.newFixedThreadPool(1);
 
-    static QueryCallable call = new QueryCallable();;
+    static QueryCallable call = new QueryCallable();
+    static FileWriter rewardRecorder = null;
 
     static public void main(String... argv) throws IOException {
 
@@ -71,6 +72,13 @@ public class StarterTDB {
         // send the Q Learning object to the BGP optimizer
         ds.getContext().set(Symbol.create("QLearning"), QLearning);
 
+        String fileName = "reward.txt";
+        try {
+            rewardRecorder = new FileWriter(fileName);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         /**
          * load part of LUBM data into TDB
          */
@@ -80,23 +88,32 @@ public class StarterTDB {
         // singleRun(QLearning, query);
         QLearningTrain(QLearning, query);
         exec.shutdown();
-
+        rewardRecorder.close();
     }
 
     static void singleRun(QLearning QLearning, Query query) {
         long maxTime = 1000 * 9;
         double r = -maxTime;
         call.setQuery(query);
-        Future<Long> future = exec.submit(call);
         try {
+            if (exec.isShutdown()) {
+                exec = Executors.newFixedThreadPool(1);
+            }
+            Future<Long> future = exec.submit(call);
             r = -future.get(maxTime, TimeUnit.MILLISECONDS);
             System.out.println("Time Cost: " + -r);
         } catch (TimeoutException ex) {
             System.out.println("Query execution time out!!!");
-            future.cancel(true);
+            // shut down the tread pool to stop the task
+            exec.shutdown();
         } catch (Exception e) {
             e.printStackTrace();
             exec.shutdown();
+        }
+        try {
+            rewardRecorder.write((-r) + "\n");
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         QLearning.updateQ(r);
         QLearning.saveQValue();
@@ -125,6 +142,8 @@ public class StarterTDB {
         try (QueryExecution qe = QueryExecutionFactory.create(query, ds)) {
             ResultSet rs = qe.execSelect();
             for (; rs.hasNext();) {
+                if (Thread.currentThread().isInterrupted())
+                    return 0;
                 QuerySolution soln = rs.nextSolution();
                 // Iterator<String> vars = soln.varNames();
                 // for (; vars.hasNext();) {
