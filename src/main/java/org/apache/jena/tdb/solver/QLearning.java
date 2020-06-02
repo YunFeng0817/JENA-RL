@@ -24,6 +24,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.algebra.Op;
@@ -54,6 +60,13 @@ public class QLearning {
     private StatsResults statsResults;
     private final static String statisticsFile = "Statistics.object";
     private List<String> triples;
+    private FileWriter rewardRecorder = null;
+    final ExecutorService exec = Executors.newFixedThreadPool(1);
+    Callable<Long> call = new Callable<Long>() {
+        public Long call() throws Exception {
+            return -runQuery();
+        }
+    };
 
     QLearning(BasicPattern pattern, ExecutionContext execCxt) {
         this.columnLength = pattern.size();
@@ -77,6 +90,13 @@ public class QLearning {
         }
         // Stats.write(System.out, statisticsResult);
         preProcessingTriples();
+
+        String fileName = "reward.txt";
+        try {
+            rewardRecorder = new FileWriter(fileName);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     void preProcessingTriples() {
@@ -118,7 +138,7 @@ public class QLearning {
     void calculateQ() {
         Random rand = new Random();
 
-        for (int i = 0; i < 20; i++) { // Train cycles
+        for (int i = 0; i < 200; i++) { // Train cycles
             System.out.println("Round count: " + i);
             init();
             while (!isFinalState()) {
@@ -128,15 +148,38 @@ public class QLearning {
 
                 // Pick a random action from the ones possible
                 int index = rand.nextInt(actionsFromCurrentState.size());
-                int choice = actionsFromCurrentState.get(index);
+                double greedyRate = 0.9;
+                double randomValue = rand.nextDouble();
+                int choice = 0;
+                if (randomValue < greedyRate) {
+                    choice = getPolicyFromState();
+                } else {
+                    choice = actionsFromCurrentState.get(index);
+                }
                 State.add(triples.get(choice));
                 Result.add(choice);
 
                 // Q(state,action)= Q(state,action) + alpha * (R(state,action) + gamma *
                 // Max(next state, all actions) - Q(state,action))
                 double maxQ = maxQ();
+                long maxTime = 1000 * 9;
+                double r = -maxTime;
 
-                double r = -runQuery();
+                try {
+                    Future<Long> future = exec.submit(call);
+                    r = future.get(maxTime, TimeUnit.MILLISECONDS);
+                } catch (TimeoutException ex) {
+                    System.out.println("Query execution time out!!!");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                if (isFinalState()) {
+                    try {
+                        rewardRecorder.write((-r) + "\n");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
 
                 double value = alpha * (r + gamma * maxQ);
                 QFromCurrentState.put(triples.get(choice), value);
@@ -144,6 +187,12 @@ public class QLearning {
             }
         }
         writeFile(this.Q, this.QFile);
+        exec.shutdown();
+        try {
+            rewardRecorder.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -212,7 +261,7 @@ public class QLearning {
      */
     void getPolicy() {
         init();
-        printQ();
+        // printQ();
         while (!isFinalState()) {
             int nextAction = getPolicyFromState();
             State.add(triples.get(nextAction));
