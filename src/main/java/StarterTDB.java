@@ -47,7 +47,7 @@ public class StarterTDB {
     static public Dataset ds;
     static ExecutorService exec = Executors.newFixedThreadPool(1);
 
-    static QueryCallable call;
+    static QueryCallable call = new QueryCallable();;
 
     static public void main(String... argv) throws IOException {
 
@@ -86,15 +86,17 @@ public class StarterTDB {
     static void singleRun(QLearning QLearning, Query query) {
         long maxTime = 1000 * 9;
         double r = -maxTime;
+        call.setQuery(query);
+        Future<Long> future = exec.submit(call);
         try {
-            call = new QueryCallable(query);
-            Future<Long> future = exec.submit(call);
             r = -future.get(maxTime, TimeUnit.MILLISECONDS);
             System.out.println("Time Cost: " + -r);
         } catch (TimeoutException ex) {
             System.out.println("Query execution time out!!!");
+            future.cancel(true);
         } catch (Exception e) {
             e.printStackTrace();
+            exec.shutdown();
         }
         QLearning.updateQ(r);
         QLearning.saveQValue();
@@ -107,7 +109,7 @@ public class StarterTDB {
      * @param query     the query
      */
     static void QLearningTrain(QLearning QLearning, Query query) {
-        for (int i = 0; i < 40; i++) {
+        for (int i = 0; i < 200; i++) {
             System.out.println("Round: " + (i + 1));
             singleRun(QLearning, query);
         }
@@ -188,8 +190,8 @@ public class StarterTDB {
     static class QueryCallable implements Callable {
         Query Query;
 
-        QueryCallable(Query query) {
-            this.Query = query;
+        public void setQuery(Query query) {
+            Query = query;
         }
 
         @Override
