@@ -44,6 +44,7 @@ import org.apache.jena.sparql.engine.optimizer.reorder.ReorderProc;
 import org.apache.jena.sparql.engine.optimizer.reorder.ReorderTransformation;
 import org.apache.jena.sparql.expr.ExprList;
 import org.apache.jena.sparql.mgt.Explain;
+import org.apache.jena.sparql.util.Symbol;
 import org.apache.jena.tdb.solver.DQN.DQN;
 import org.apache.jena.tdb.store.DatasetGraphTDB;
 import org.apache.jena.tdb.store.GraphTDB;
@@ -197,6 +198,9 @@ public class OpExecutorTDB1 extends OpExecutor {
 
         // -- Filter placement
 
+        QLearning2 QLearning = (QLearning2) execCxt.getContext().get(Symbol.create("QLearning"), null);
+        pattern = QLearning.reOrder(pattern);
+
         Op op = null;
         if (exprs != null)
             op = TransformFilterPlacement.transform(exprs, pattern);
@@ -213,14 +217,14 @@ public class OpExecutorTDB1 extends OpExecutor {
         // ql.calculateQ();
         // ql.getPolicy();
 
-        DQN dqn = new DQN(pattern, execCxt);
-        try {
-            dqn.train();
-            dqn.plan();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return input;
+        // DQN dqn = new DQN(pattern, execCxt);
+        // try {
+        // dqn.train();
+        // dqn.plan();
+        // } catch (IOException e) {
+        // e.printStackTrace();
+        // }
+        return plainExecute(op, input, execCxt);
     }
 
     /** Execute, with optimization, a quad pattern */

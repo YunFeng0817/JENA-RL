@@ -18,11 +18,19 @@
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.sparql.util.Symbol;
 import org.apache.jena.tdb.TDBFactory;
 import org.apache.jena.tdb.solver.QLearning;
+import org.apache.jena.tdb.solver.QLearning2;
 import org.apache.jena.tdb.solver.stats.Stats;
 import org.apache.jena.tdb.solver.stats.StatsCollector;
 import org.apache.jena.tdb.solver.stats.StatsResults;
@@ -37,6 +45,10 @@ public class StarterTDB {
 
     final static String statisticsFile = "Statistics.object";
     public static StatsResults statisticsResult = null;
+    static public Dataset ds;
+    static ExecutorService exec = Executors.newFixedThreadPool(1);
+
+    static QueryCallable call;
 
     static public void main(String... argv) throws IOException {
 
@@ -52,8 +64,13 @@ public class StarterTDB {
         String queryString = loadQuery("./Query/LUBM/2.sparql");
         Query query = QueryFactory.create(queryString);
         String directory = "TDB";
-        Dataset ds = TDBFactory.createDataset(directory);
+        ds = TDBFactory.createDataset(directory);
+        // used to load data
         Model model = ds.getDefaultModel();
+        // create Q Learning BGP optimizer
+        QLearning2 QLearning = new QLearning2();
+        // send the Q Learning object to the BGP optimizer
+        ds.getContext().set(Symbol.create("QLearning"), QLearning);
 
         /**
          * load part of LUBM data into TDB
@@ -61,21 +78,44 @@ public class StarterTDB {
         // loadData(model, "./Data/LUBM/", "TURTLE");
         // loadData(model, "./Data/LUBM/", "N-TRIPLE");
 
-        /**
-         * execute and get query results
-         */
+        long maxTime = 1000 * 9;
+        double r = -maxTime;
+        try {
+            call = new QueryCallable(query);
+            Future<Long> future = exec.submit(call);
+            r = -future.get(maxTime, TimeUnit.MILLISECONDS);
+            System.out.println("Time Cost: " + -r);
+            QLearning.updateQ(r);
+            QLearning.saveQValue();
+        } catch (TimeoutException ex) {
+            System.out.println("Query execution time out!!!");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        exec.shutdown();
+
+    }
+
+    /**
+     * execute query, get query results and get time cost
+     * 
+     * @return time cost, unit: ms
+     */
+    static long runQuery(Query query) {
+        long startTime = System.currentTimeMillis();
         try (QueryExecution qe = QueryExecutionFactory.create(query, ds)) {
             ResultSet rs = qe.execSelect();
             for (; rs.hasNext();) {
                 QuerySolution soln = rs.nextSolution();
-                Iterator<String> vars = soln.varNames();
-                for (; vars.hasNext();) {
-                    String varName = vars.next();
-                    System.out.println(varName + ": " + soln.get(varName).toString());
-                }
-                System.out.println("------------");
+                // Iterator<String> vars = soln.varNames();
+                // for (; vars.hasNext();) {
+                // String varName = vars.next();
+                // System.out.println(varName + ": " + soln.get(varName).toString());
+                // }
+                // System.out.println("------------");
             }
         }
+        return System.currentTimeMillis() - startTime;
     }
 
     /**
@@ -123,6 +163,23 @@ public class StarterTDB {
         bufferedReader.close();
         // System.out.println(queryString.toString());
         return queryString.toString();
+    }
+
+    /**
+     * implement the callable interface
+     */
+    static class QueryCallable implements Callable {
+        Query Query;
+
+        QueryCallable(Query query) {
+            this.Query = query;
+        }
+
+        @Override
+        public Long call() throws Exception {
+            return runQuery(Query);
+        }
+
     }
 
 }
