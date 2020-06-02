@@ -78,6 +78,13 @@ public class StarterTDB {
         // loadData(model, "./Data/LUBM/", "TURTLE");
         // loadData(model, "./Data/LUBM/", "N-TRIPLE");
 
+        // singleRun(QLearning, query);
+        QLearningTrain(QLearning, query);
+        exec.shutdown();
+
+    }
+
+    static void singleRun(QLearning2 QLearning, Query query) {
         long maxTime = 1000 * 9;
         double r = -maxTime;
         try {
@@ -92,8 +99,18 @@ public class StarterTDB {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        exec.shutdown();
+    }
 
+    /**
+     * train the Q learning model for many episodes all at once
+     * 
+     * @param QLearning Q learning object
+     * @param query     the query
+     */
+    static void QLearningTrain(QLearning2 QLearning, Query query) {
+        for (int i = 0; i < 40; i++) {
+            singleRun(QLearning, query);
+        }
     }
 
     /**
