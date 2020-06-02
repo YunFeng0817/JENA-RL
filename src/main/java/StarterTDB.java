@@ -30,7 +30,6 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.sparql.util.Symbol;
 import org.apache.jena.tdb.TDBFactory;
 import org.apache.jena.tdb.solver.QLearning;
-import org.apache.jena.tdb.solver.QLearning2;
 import org.apache.jena.tdb.solver.stats.Stats;
 import org.apache.jena.tdb.solver.stats.StatsCollector;
 import org.apache.jena.tdb.solver.stats.StatsResults;
@@ -68,7 +67,7 @@ public class StarterTDB {
         // used to load data
         Model model = ds.getDefaultModel();
         // create Q Learning BGP optimizer
-        QLearning2 QLearning = new QLearning2();
+        QLearning QLearning = new QLearning();
         // send the Q Learning object to the BGP optimizer
         ds.getContext().set(Symbol.create("QLearning"), QLearning);
 
@@ -84,7 +83,7 @@ public class StarterTDB {
 
     }
 
-    static void singleRun(QLearning2 QLearning, Query query) {
+    static void singleRun(QLearning QLearning, Query query) {
         long maxTime = 1000 * 9;
         double r = -maxTime;
         try {
@@ -92,13 +91,13 @@ public class StarterTDB {
             Future<Long> future = exec.submit(call);
             r = -future.get(maxTime, TimeUnit.MILLISECONDS);
             System.out.println("Time Cost: " + -r);
-            QLearning.updateQ(r);
-            QLearning.saveQValue();
         } catch (TimeoutException ex) {
             System.out.println("Query execution time out!!!");
         } catch (Exception e) {
             e.printStackTrace();
         }
+        QLearning.updateQ(r);
+        QLearning.saveQValue();
     }
 
     /**
@@ -107,8 +106,9 @@ public class StarterTDB {
      * @param QLearning Q learning object
      * @param query     the query
      */
-    static void QLearningTrain(QLearning2 QLearning, Query query) {
+    static void QLearningTrain(QLearning QLearning, Query query) {
         for (int i = 0; i < 40; i++) {
+            System.out.println("Round: " + (i + 1));
             singleRun(QLearning, query);
         }
     }

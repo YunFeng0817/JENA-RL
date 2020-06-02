@@ -198,7 +198,7 @@ public class OpExecutorTDB1 extends OpExecutor {
 
         // -- Filter placement
 
-        QLearning2 QLearning = (QLearning2) execCxt.getContext().get(Symbol.create("QLearning"), null);
+        QLearning QLearning = (QLearning) execCxt.getContext().get(Symbol.create("QLearning"), null);
         pattern = QLearning.reOrder(pattern);
 
         Op op = null;
