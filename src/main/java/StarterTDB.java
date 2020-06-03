@@ -61,7 +61,7 @@ public class StarterTDB {
             artLogger.setAdditive(false);
         }
 
-        String directory = "TDB";
+        String directory = "TDBLUBM";
         ds = TDBFactory.createDataset(directory);
         // used to load data
         Model model = ds.getDefaultModel();
@@ -69,6 +69,10 @@ public class StarterTDB {
         QLearning QLearning = new QLearning();
         // send the Q Learning object to the BGP optimizer
         ds.getContext().set(Symbol.create("QLearning"), QLearning);
+        // String Optimizer = "Default";
+        String Optimizer = "QLearning";
+        // String Optimizer = "DQN";
+        ds.getContext().set(Symbol.create("Optimizer"), Optimizer);
 
         String fileName = "reward.txt";
         try {
@@ -83,20 +87,21 @@ public class StarterTDB {
         // loadData(model, "./Data/LUBM/", "TURTLE");
         // loadData(model, "./Data/LUBM/", "N-TRIPLE");
 
-        Query query = loadQuery("./Query/LUBM/2.sparql");
+        // Query query = loadQuery("./Query/LUBM/2.sparql");
         List<Query> trainQueryList = loadQuerySet("./Query/LUBM/train");
         List<Query> testQueryList = loadQuerySet("./Query/LUBM/test");
 
         // singleRun(QLearning, query);
         // runQuerySet(QLearning, trainQueryList);
-        QLearningTrain(QLearning, trainQueryList, 1000);
+        // runQuerySet(QLearning, testQueryList);
+        QLearningTrain(QLearning, trainQueryList, 200);
         exec.shutdown();
         rewardRecorder.close();
         System.exit(0);
     }
 
     static void singleRun(QLearning QLearning, Query query) {
-        long maxTime = 1000 * 5;
+        long maxTime = 1000 * 60;
         double r = -maxTime;
         call.setQuery(query);
         try {

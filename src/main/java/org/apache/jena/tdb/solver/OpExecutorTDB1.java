@@ -179,52 +179,53 @@ public class OpExecutorTDB1 extends OpExecutor {
         if (!input.hasNext())
             return input;
 
-        // -- Input
-        // Must pass this iterator into the next stage.
-        if (pattern.size() >= 2) {
-            // Must be 2 or triples to reorder.
-            ReorderTransformation transform = dsgtdb.getReorderTransform();
-            if (transform != null) {
-                QueryIterPeek peek = QueryIterPeek.create(input, execCxt);
-                input = peek; // Must pass on
-                // pattern = reorder(pattern, peek, transform);
-                // ReorderProc proc = new ReorderProcIndexes(new int[] { 2, 4, 0, 3, 1, 5 });
-                // ReorderProc proc = new ReorderProcIndexes(new int[] { 1, 4, 5, 2, 0, 3 });
-                // ReorderProc proc = new ReorderProcIndexes(new int[] { 2, 3, 5, 4, 1, 0 });
-                // Then reorder original patten
-                // pattern = proc.reorder(pattern);
-            }
-        }
-
-        // -- Filter placement
-
-        QLearning QLearning = (QLearning) execCxt.getContext().get(Symbol.create("QLearning"), null);
-        pattern = QLearning.reOrder(pattern);
-
         Op op = null;
-        if (exprs != null)
-            op = TransformFilterPlacement.transform(exprs, pattern);
-        else
-            op = new OpBGP(pattern);
 
+        String optimizerType = execCxt.getContext().getAsString(Symbol.create("Optimizer"));
+        switch (optimizerType) {
+            case "Default":
+                // -- Input
+                // Must pass this iterator into the next stage.
+                if (pattern.size() >= 2) {
+                    // Must be 2 or triples to reorder.
+                    ReorderTransformation transform = dsgtdb.getReorderTransform();
+                    if (transform != null) {
+                        QueryIterPeek peek = QueryIterPeek.create(input, execCxt);
+                        input = peek; // Must pass on
+                        pattern = reorder(pattern, peek, transform);
+                    }
+                }
+                if (exprs != null)
+                    op = TransformFilterPlacement.transform(exprs, pattern);
+                else
+                    op = new OpBGP(pattern);
+
+                return plainExecute(op, input, execCxt);
+            case "QLearning":
+                QLearning QLearning = (QLearning) execCxt.getContext().get(Symbol.create("QLearning"), null);
+                pattern = QLearning.reOrder(pattern);
+                if (exprs != null)
+                    op = TransformFilterPlacement.transform(exprs, pattern);
+                else
+                    op = new OpBGP(pattern);
+                return plainExecute(op, input, execCxt);
+            case "DQN":
+                DQN dqn = new DQN(pattern, execCxt);
+                try {
+                    dqn.train();
+                    dqn.plan();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return input;
+            default:
+                return input;
+        }
         // QueryIterator q = plainExecute(op, input, execCxt);
         // long startTime = System.currentTimeMillis();
         // for (; q.hasNext(); q.nextBinding())
         // ;
         // System.out.println(System.currentTimeMillis() - startTime);
-
-        // QLearning ql = new QLearning(pattern, execCxt);
-        // ql.calculateQ();
-        // ql.getPolicy();
-
-        // DQN dqn = new DQN(pattern, execCxt);
-        // try {
-        // dqn.train();
-        // dqn.plan();
-        // } catch (IOException e) {
-        // e.printStackTrace();
-        // }
-        return plainExecute(op, input, execCxt);
     }
 
     /** Execute, with optimization, a quad pattern */
