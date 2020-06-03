@@ -61,7 +61,7 @@ public class StarterTDB {
             artLogger.setAdditive(false);
         }
 
-        String directory = "TDBLUBM";
+        String directory = "TDB";
         ds = TDBFactory.createDataset(directory);
         // used to load data
         Model model = ds.getDefaultModel();
@@ -93,15 +93,15 @@ public class StarterTDB {
 
         // singleRun(QLearning, query);
         // runQuerySet(QLearning, trainQueryList);
-        // runQuerySet(QLearning, testQueryList);
-        QLearningTrain(QLearning, trainQueryList, 200);
+        runQuerySet(QLearning, testQueryList);
+        // QLearningTrain(QLearning, trainQueryList, 200);
         exec.shutdown();
         rewardRecorder.close();
         System.exit(0);
     }
 
     static void singleRun(QLearning QLearning, Query query) {
-        long maxTime = 1000 * 60;
+        long maxTime = 1000 * 5;
         double r = -maxTime;
         call.setQuery(query);
         try {

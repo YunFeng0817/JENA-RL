@@ -40,6 +40,7 @@ public class QLearning {
     private List<String> State; // store state
     private ArrayList<Integer> Result; // store the join sequence
     private ArrayList<Integer> Order; // store the final join sequence
+    private ArrayList<Integer> RandomPoint; // store the final join sequence
     private BasicPattern pattern; // store all original triples
     private final String QFile = "./Q.hashmap"; // the file stored the Q value table
     private List<String> triples;
@@ -48,6 +49,7 @@ public class QLearning {
         this.State = new ArrayList<>();
         this.Q = new HashMap<>();
         this.Order = new ArrayList<>();
+        this.RandomPoint = new ArrayList<>();
         try {
             this.Q = (Map<List<String>, Map<String, Double>>) readFile(this.QFile);
         } catch (IOException e) {
@@ -87,6 +89,7 @@ public class QLearning {
         preProcessingTriples();
         init();
         this.Order.clear();
+        this.RandomPoint.clear();
         Random rand = new Random();
         while (!isFinalState()) {
             // get all possible actions according to current state
@@ -104,6 +107,7 @@ public class QLearning {
             } else {
                 // choose a random action
                 choice = actionsFromCurrentState.get(index);
+                RandomPoint.add(choice);
             }
             State.add(triples.get(choice));
             Result.add(choice);
@@ -138,7 +142,8 @@ public class QLearning {
 
             double value = alpha * (reward + gamma * maxQ);
             // update the Q value
-            QFromCurrentState.put(triples.get(choice), value);
+            if (!QFromCurrentState.containsKey(triples.get(choice)) || RandomPoint.contains(choice))
+                QFromCurrentState.put(triples.get(choice), value);
         }
     }
 
