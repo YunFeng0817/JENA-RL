@@ -61,8 +61,6 @@ public class StarterTDB {
             artLogger.setAdditive(false);
         }
 
-        String queryString = loadQuery("./Query/LUBM/2.sparql");
-        Query query = QueryFactory.create(queryString);
         String directory = "TDB";
         ds = TDBFactory.createDataset(directory);
         // used to load data
@@ -85,14 +83,20 @@ public class StarterTDB {
         // loadData(model, "./Data/LUBM/", "TURTLE");
         // loadData(model, "./Data/LUBM/", "N-TRIPLE");
 
+        Query query = loadQuery("./Query/LUBM/2.sparql");
+        List<Query> trainQueryList = loadQuerySet("./Query/LUBM/train");
+        List<Query> testQueryList = loadQuerySet("./Query/LUBM/test");
+
         // singleRun(QLearning, query);
-        QLearningTrain(QLearning, query);
+        // runQuerySet(QLearning, trainQueryList);
+        QLearningTrain(QLearning, trainQueryList, 1000);
         exec.shutdown();
         rewardRecorder.close();
+        System.exit(0);
     }
 
     static void singleRun(QLearning QLearning, Query query) {
-        long maxTime = 1000 * 9;
+        long maxTime = 1000 * 5;
         double r = -maxTime;
         call.setQuery(query);
         try {
@@ -101,9 +105,9 @@ public class StarterTDB {
             }
             Future<Long> future = exec.submit(call);
             r = -future.get(maxTime, TimeUnit.MILLISECONDS);
-            System.out.println("Time Cost: " + -r);
+            System.out.println("  Time Cost: " + (-r) + "\n");
         } catch (TimeoutException ex) {
-            System.out.println("Query execution time out!!!");
+            System.out.println("  Query execution time out!!!\n");
             // shut down the tread pool to stop the task
             exec.shutdown();
         } catch (Exception e) {
@@ -119,16 +123,23 @@ public class StarterTDB {
         QLearning.saveQValue();
     }
 
+    static void runQuerySet(QLearning QLearning, List<Query> queryList) {
+        for (int i = 0; i < queryList.size(); i++) {
+            System.out.println("  Query: " + (i + 1));
+            singleRun(QLearning, queryList.get(i));
+        }
+    }
+
     /**
      * train the Q learning model for many episodes all at once
      * 
      * @param QLearning Q learning object
      * @param query     the query
      */
-    static void QLearningTrain(QLearning QLearning, Query query) {
-        for (int i = 0; i < 200; i++) {
+    static void QLearningTrain(QLearning QLearning, List<Query> queryList, int trainRound) {
+        for (int i = 0; i < trainRound; i++) {
             System.out.println("Round: " + (i + 1));
-            singleRun(QLearning, query);
+            runQuerySet(QLearning, queryList);
         }
     }
 
@@ -184,13 +195,13 @@ public class StarterTDB {
     }
 
     /**
-     * load query string from file
+     * load query object from file
      * 
      * @param queryFilePath path of sparql query file
-     * @return query string
+     * @return query object
      * @throws IOException
      */
-    static String loadQuery(String queryFilePath) throws IOException {
+    static Query loadQuery(String queryFilePath) throws IOException {
         StringBuilder queryString = new StringBuilder();
         BufferedReader bufferedReader = new BufferedReader(new FileReader(new File(queryFilePath)));
         String line;
@@ -200,7 +211,28 @@ public class StarterTDB {
         }
         bufferedReader.close();
         // System.out.println(queryString.toString());
-        return queryString.toString();
+        return QueryFactory.create(queryString.toString());
+    }
+
+    /**
+     * load query string from file
+     * 
+     * @param queryDirPath path of sparql query file or directory
+     * @return list of query object
+     * @throws IOException
+     */
+    static List<Query> loadQuerySet(String queryDirPath) throws IOException {
+        List<Query> queryList = new ArrayList<>();
+        File queryDir = new File(queryDirPath);
+        File[] fileList = queryDir.listFiles();
+        if (fileList != null) {
+            for (File file : fileList) {
+                queryList.add(loadQuery(file.getPath()));
+            }
+        } else if (queryDirPath != null) {
+            queryList.add(loadQuery(queryDirPath));
+        }
+        return queryList;
     }
 
     /**

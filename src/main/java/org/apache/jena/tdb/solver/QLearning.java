@@ -95,7 +95,7 @@ public class QLearning {
             // Pick a random action from the ones possible
             int index = rand.nextInt(actionsFromCurrentState.size());
             // greedy policy
-            double greedyRate = 0.8;
+            double greedyRate = 0.9;
             double randomValue = rand.nextDouble();
             int choice = 0;
             if (randomValue < greedyRate) {
@@ -109,7 +109,7 @@ public class QLearning {
             Result.add(choice);
             Order.add(choice);
         }
-        System.out.println("Order: " + Result.toString());
+        System.out.println("  Order: " + Result.toString());
         // generate a new Basic Pattern
         List<Triple> triples = pattern.getList();
         BasicPattern newPattern = new BasicPattern();
