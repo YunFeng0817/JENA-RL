@@ -61,7 +61,7 @@ public class StarterTDB {
             artLogger.setAdditive(false);
         }
 
-        String directory = "TDB";
+        String directory = "TDBLUBM";
         ds = TDBFactory.createDataset(directory);
         // used to load data
         Model model = ds.getDefaultModel();
@@ -94,14 +94,14 @@ public class StarterTDB {
         // singleRun(QLearning, query);
         // runQuerySet(QLearning, trainQueryList);
         runQuerySet(QLearning, testQueryList);
-        // QLearningTrain(QLearning, trainQueryList, 200);
+        // RLTrain(QLearning, trainQueryList, 200);
         exec.shutdown();
         rewardRecorder.close();
         System.exit(0);
     }
 
     static void singleRun(QLearning QLearning, Query query) {
-        long maxTime = 1000 * 5;
+        long maxTime = 1000 * 60;
         double r = -maxTime;
         call.setQuery(query);
         try {
@@ -136,12 +136,13 @@ public class StarterTDB {
     }
 
     /**
-     * train the Q learning model for many episodes all at once
+     * train the RL model for many episodes all at once
      * 
-     * @param QLearning Q learning object
-     * @param query     the query
+     * @param QLearning  Q learning object
+     * @param query      the query
+     * @param trainRound the round the model need to train
      */
-    static void QLearningTrain(QLearning QLearning, List<Query> queryList, int trainRound) {
+    static void RLTrain(QLearning QLearning, List<Query> queryList, int trainRound) {
         for (int i = 0; i < trainRound; i++) {
             System.out.println("Round: " + (i + 1));
             runQuerySet(QLearning, queryList);
