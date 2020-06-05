@@ -1,5 +1,5 @@
 #### 概述
-本项目使用了强化学习算法来优化SPARQL查询，使用的图数据库是[Apache Jena(TDB)](https://github.com/apache/jena)，版本是3.14.0。
+本项目使用了强化学习算法来优化SPARQL查询，使用的图数据库是[Apache Jena(TDB)](https://github.com/apache/jena)，版本是3.14.0。本项目旨在优化基本图模式(BGP)中三元组模式的连接顺序。
 
 #### 如何配置项目
 1. clone此项目到本地，安装好[maven工具](https://maven.apache.org/download.cgi#)
@@ -57,6 +57,41 @@ runQuerySet(QLearning, trainQueryList);
 trainQueryList代表用于执行的查询集，是一个List\<Query\>对象
 
 #### 代码介绍
+StarterTDB.java：
+是主函数所在的类，负责连接数据库，导入数据，执行查询，展示查询结果，还包含一些读写文件的工具函数。
+
+OpExecutorTDB1.java:
+位于./src/main/java/org/apache/jena/tdb/solver文件夹中，代码中的第177行有函数：
+```java
+private static QueryIterator optimizeExecuteTriples(DatasetGraphTDB dsgtdb, QueryIterator input,
+            BasicPattern pattern, ExprList exprs, ExecutionContext execCxt)
+```
+这个函数是Jena用于BGP优化的函数，在其中可以添加自己的优化函数
+
+QLearning.java:
+位于./src/main/java/org/apache/jena/tdb/solver文件夹中
+是Q学习的优化器
+
+DQN Package:
+这个包位于./src/main/java/org/apache/jena/tdb/solver中，主要负责DQN算法。
+DQN.java:
+包含了算法的各种参数和接收Jena传入的查询，负责查询的编码
+
+BgpMDP.java:
+用于定义MDP的五个要素，包括初始状态，状态，状态的转移，奖励
+
+BgpActionSpace.java
+用于定义动作空间，包括动作的数据结构和动作的选择方式
+
+BgpMDPPolicy.java
+用于在根据已有的策略来进行优化时的MDP情况
+
+BgpLearning.java
+负责单步的训练过程
+
+BgpPolicy.java
+负责根据已有的网络来决定下一步的最优动作
+
 
 
 #### 优化效果
