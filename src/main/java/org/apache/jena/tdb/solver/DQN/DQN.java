@@ -111,9 +111,9 @@ public class DQN {
         mdp2.reset();
         double reward = pol2.play(mdp2);
         rewards += reward;
-        Logger.getAnonymousLogger().info("Reward: " + reward);
+        // Logger.getAnonymousLogger().info("Reward: " + reward);
 
-        Logger.getAnonymousLogger().info("average: " + rewards / 1000);
+        // Logger.getAnonymousLogger().info("average: " + rewards / 1000);
 
     }
 

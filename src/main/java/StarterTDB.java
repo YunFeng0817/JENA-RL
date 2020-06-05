@@ -65,21 +65,6 @@ public class StarterTDB {
         ds = TDBFactory.createDataset(directory);
         // used to load data
         Model model = ds.getDefaultModel();
-        // create Q Learning BGP optimizer
-        QLearning QLearning = new QLearning();
-        // send the Q Learning object to the BGP optimizer
-        ds.getContext().set(Symbol.create("QLearning"), QLearning);
-        // String Optimizer = "Default";
-        String Optimizer = "QLearning";
-        // String Optimizer = "DQN";
-        ds.getContext().set(Symbol.create("Optimizer"), Optimizer);
-
-        String fileName = "reward.txt";
-        try {
-            rewardRecorder = new FileWriter(fileName);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
         /**
          * load part of LUBM data into TDB
@@ -87,20 +72,66 @@ public class StarterTDB {
         // loadData(model, "./Data/LUBM/", "TURTLE");
         // loadData(model, "./Data/LUBM/", "N-TRIPLE");
 
-        // Query query = loadQuery("./Query/LUBM/2.sparql");
+        /**
+         * load query from sparql files
+         */
+        Query query = loadQuery("./Query/LUBM/2.sparql");
         List<Query> trainQueryList = loadQuerySet("./Query/LUBM/train");
         List<Query> testQueryList = loadQuerySet("./Query/LUBM/test");
 
-        // singleRun(QLearning, query);
-        // runQuerySet(QLearning, trainQueryList);
-        runQuerySet(QLearning, testQueryList);
-        // RLTrain(QLearning, trainQueryList, 200);
-        exec.shutdown();
-        rewardRecorder.close();
-        System.exit(0);
+        /**
+         * choose the optimizer type
+         */
+        // String Optimizer = "Default";
+        // String Optimizer = "QLearning";
+        String Optimizer = "DQN";
+
+        ds.getContext().set(Symbol.create("Optimizer"), Optimizer);
+
+        switch (Optimizer) {
+            case "Default":
+                // singleDefaultRun(query);
+                runDefaultQuerySet(trainQueryList);
+                runDefaultQuerySet(trainQueryList);
+                break;
+            case "QLearning":
+                // create Q Learning BGP optimizer
+                QLearning QLearning = new QLearning();
+                // send the Q Learning object to the BGP optimizer
+                ds.getContext().set(Symbol.create("QLearning"), QLearning);
+
+                String fileName = "reward.txt";
+                try {
+                    rewardRecorder = new FileWriter(fileName);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                // singleQLRun(QLearning, query);
+                // runQLQuerySet(QLearning, trainQueryList);
+                runQLQuerySet(QLearning, testQueryList);
+                // QLTrain(QLearning, trainQueryList, 200);
+                exec.shutdown();
+                rewardRecorder.close();
+                System.exit(0);
+            case "DQN":
+                fileName = "reward.txt";
+                try {
+                    rewardRecorder = new FileWriter(fileName);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                ds.getContext().set(Symbol.create("DQN"), true); // true->train false->single run
+                runQuery(query);
+                // runDefaultQuerySet(trainQueryList);
+                // runDefaultQuerySet(trainQueryList);
+                break;
+            default:
+        }
+
     }
 
-    static void singleRun(QLearning QLearning, Query query) {
+    static void singleQLRun(QLearning QLearning, Query query) {
         long maxTime = 1000 * 60;
         double r = -maxTime;
         call.setQuery(query);
@@ -128,10 +159,10 @@ public class StarterTDB {
         QLearning.saveQValue();
     }
 
-    static void runQuerySet(QLearning QLearning, List<Query> queryList) {
+    static void runQLQuerySet(QLearning QLearning, List<Query> queryList) {
         for (int i = 0; i < queryList.size(); i++) {
             System.out.println("  Query: " + (i + 1));
-            singleRun(QLearning, queryList.get(i));
+            singleQLRun(QLearning, queryList.get(i));
         }
     }
 
@@ -142,10 +173,22 @@ public class StarterTDB {
      * @param query      the query
      * @param trainRound the round the model need to train
      */
-    static void RLTrain(QLearning QLearning, List<Query> queryList, int trainRound) {
+    static void QLTrain(QLearning QLearning, List<Query> queryList, int trainRound) {
         for (int i = 0; i < trainRound; i++) {
             System.out.println("Round: " + (i + 1));
-            runQuerySet(QLearning, queryList);
+            runQLQuerySet(QLearning, queryList);
+        }
+    }
+
+    static void singleDefaultRun(Query query) {
+        long time = runQuery(query);
+        System.out.println("  Time Cost: " + time + "\n");
+    }
+
+    static void runDefaultQuerySet(List<Query> queryList) {
+        for (int i = 0; i < queryList.size(); i++) {
+            System.out.println("  Query: " + (i + 1));
+            singleDefaultRun(queryList.get(i));
         }
     }
 

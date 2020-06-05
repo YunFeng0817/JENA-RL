@@ -212,7 +212,9 @@ public class OpExecutorTDB1 extends OpExecutor {
             case "DQN":
                 DQN dqn = new DQN(pattern, execCxt);
                 try {
-                    dqn.train();
+                    if ((boolean) execCxt.getContext().get(Symbol.create("DQN"), false)) {
+                        dqn.train();
+                    }
                     dqn.plan();
                 } catch (IOException e) {
                     e.printStackTrace();

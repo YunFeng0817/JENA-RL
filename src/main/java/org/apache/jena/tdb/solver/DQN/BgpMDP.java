@@ -147,14 +147,9 @@ public class BgpMDP<O, A, AS extends ActionSpace<A>> implements MDP<O, A, AS> {
         initInputIterator();
         state[(Integer) action] = 1;
         double r = -runQuery();
-        r = Math.exp(r) * 10;
-        // Random R = new Random();
-        // double r = R.nextDouble() * 10;
-        if (isDone()) {
-            System.out.println("Epoch finished: " + Result);
-        }
-        System.out.println("Step: " + Result);
-        System.out.println(action);
+        System.out.println("  Order: " + Result);
+        System.out.println("  Time Cost: " + (-r) + "\n");
+        r = Math.exp(r / 1000) * 10;
         return new StepReply(new Box(new JSONArray(state)), r, isDone(), null);
     }
 
